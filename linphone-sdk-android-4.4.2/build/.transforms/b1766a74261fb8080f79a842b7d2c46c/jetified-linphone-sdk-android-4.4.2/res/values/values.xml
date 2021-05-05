@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="linphone_sdk_branch" translatable="false">tags/4.4.2^0</string>
+    <string name="linphone_sdk_version" translatable="false">4.4.2</string>
+</resources>

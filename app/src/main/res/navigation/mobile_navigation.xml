@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.fonn.link.fragments.HomeFragment"
+        android:label=""
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.fonn.link.fragments.ProfileFragment"
+        android:label="@string/menu_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/nav_history"
+        android:name="com.fonn.link.fragments.HistoryFragment"
+        android:label="@string/history"
+        tools:layout="@layout/fragment_history" />
+
+    <fragment
+        android:id="@+id/nav_setting"
+        android:name="com.fonn.link.fragments.SettingFragments"
+        android:label="@string/setting"
+        tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/navLogout"
+        android:name="com.fonn.link.fragments.LogoutFragment"
+        android:label=""
+        tools:layout="@layout/activity_logout_fragment" />
+
+</navigation>

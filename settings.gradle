@@ -1,0 +1,4 @@
+include ':linphone-sdk-android-4.4.2'
+include ':linphone-sdk-android-4.5.0'
+include ':app'
+rootProject.name = "fonn.link"

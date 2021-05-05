@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "659813130914",
+    "project_id": "fonnlink",
+    "storage_bucket": "fonnlink.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:659813130914:android:f9d5f7660c69141ebc6dfb",
+        "android_client_info": {
+          "package_name": "com.fonn.link"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "659813130914-b9tt1qajnqrer0p8m26ldl4ivahhgs0j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAz3XzzousLHPFRR_DnzDqIMATcwAgRTho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "659813130914-b9tt1qajnqrer0p8m26ldl4ivahhgs0j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

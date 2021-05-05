@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.fonn.link">
+
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <application
+        android:name=".Applicationclass"
+        android:allowBackup="true"
+        android:icon="@mipmap/fonnicon"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/fonnicon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Fonnlink.NoActionBar"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".Dashboard"
+            android:label="@string/title_activity_dashboard"
+            android:theme="@style/Theme.Fonnlink.NoActionBar.NoActionBar"></activity>
+        <activity android:name=".LauncherActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".ConfigureAccountActivity" />
+        <activity android:name=".OTPactivity" />
+
+        <service
+            android:name=".FonnlinkService"
+            android:label="@string/app_name" />
+        <service
+            android:name=".wakeupService"
+            android:label="@string/app_name" />
+
+        <meta-data
+            android:name="com.onesignal.NotificationServiceExtension"
+            android:value="com.fonn.link.NotificationService" />
+
+        <receiver android:name=".CallReceiver" />
+    </application>
+
+</manifest>
