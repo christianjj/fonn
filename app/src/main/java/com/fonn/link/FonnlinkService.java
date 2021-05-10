@@ -115,7 +115,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
             @Override
             public void onCallStateChanged(Core core, Call call, Call.State state, String message) {
 
-                Toast.makeText(FonnlinkService.this, message, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(FonnlinkService.this, message, Toast.LENGTH_SHORT).show();
                 if (state == Call.State.IncomingReceived) {
                     // For this sample we will automatically answer incoming calls
                     getInstance().activityListener.onIncomingActivity();
@@ -140,15 +140,17 @@ public class FonnlinkService extends Service implements SensorEventListener {
                 }
 
                 else if ((state == Call.State.End) || (state == Call.State.Released)) {
-                    getInstance().activityListener.onEndCall();
+
                     if (call.getErrorInfo().getReason() == Reason.Declined) {
                         notificationManager.cancel(10);
                     }
-                    notificationManager.cancel(10);
+
                     stopService(
                             new Intent().setClass(getApplicationContext(), wakeupService.class));
 
                     enableProximitySensing(false);
+                    getInstance().activityListener.onEndCall();
+                    notificationManager.cancel(10);
                 }
 
 

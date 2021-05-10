@@ -9,7 +9,25 @@
         android:id="@+id/nav_home"
         android:name="com.fonn.link.fragments.HomeFragment"
         android:label=""
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_nav_home_to_nav_history"
+            app:destination="@id/nav_history" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_setting"
+            app:destination="@id/nav_setting" />
+        <action
+            android:id="@+id/action_nav_home_to_navLogout"
+            app:destination="@id/navLogout" />
+        <action
+            android:id="@+id/action_nav_home_to_nav_profile"
+            app:destination="@id/nav_profile"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit"
+            app:popUpTo="@id/nav_home"
+            app:popEnterAnim="@anim/fragment_open_enter"
+            app:popExitAnim="@anim/fragment_open_exit" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_profile"

@@ -8,4 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="otp_editext_color">#DAE2DFDF</color>
+    <color name="callendbg">#F12626</color>
+
 </resources>

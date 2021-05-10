@@ -6,12 +6,32 @@
     android:layout_height="match_parent"
     tools:context=".fragments.ProfileFragment">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/Theme.Fonnlink.NoActionBar.AppBarOverlay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/Ptoolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+
+            android:background="#118CEF"
+
+            app:popupTheme="@style/Theme.Fonnlink.NoActionBar.PopupOverlay" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
     <androidx.cardview.widget.CardView
         android:id="@+id/user"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
 
+        android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,6 +40,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_margin="30dp"
             android:background="@drawable/fortextviewbg"
             android:baselineAligned="true"
             android:orientation="vertical">

@@ -3,6 +3,7 @@ package com.fonn.link;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.Html;
@@ -103,7 +104,12 @@ public class ConfigureAccountActivity extends Activity {
                 if (state == RegistrationState.Ok) {
                     pd.dismiss();
                     //finish();
-                    FonnlinkService.getInstance().startActivity(getApplicationContext(),OTPactivity.class);
+                    Intent i = new Intent(ConfigureAccountActivity.this, OTPactivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    i.putExtra("username", mUsername.getText().toString());
+                    i.putExtra("password",mPassword.getText().toString());
+                    startActivity(i);
+
                 } else if (state == RegistrationState.Failed) {
 
                     FonnlinkService.getCore().clearProxyConfig();
@@ -212,13 +218,15 @@ public class ConfigureAccountActivity extends Activity {
                     JSONObject object = new JSONObject(mMessage);
                     responseCode = object.getString("status");
                     responseCode2 = object.getString("description");
-                    if(responseCode.equals("ERROR")) {
-                        Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
-                        pd.dismiss();
-                    }
-                    else {
+                    if(responseCode.equals("SUCCESS")) {
                         Log.i("okhttp",mMessage);
                         configureAccount();
+                        Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
+                        pd.dismiss();
+
+                    }
+                    else {
+
                         Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
                         pd.dismiss();
                     }

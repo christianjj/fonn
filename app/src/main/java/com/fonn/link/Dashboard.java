@@ -5,53 +5,46 @@ import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.Menu;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
-
 
 import com.fonn.link.fragments.HomeFragment;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
-import com.speedchecker.android.sdk.Public.SpeedTestListener;
-import com.speedchecker.android.sdk.Public.SpeedTestResult;
-import com.speedchecker.android.sdk.SpeedcheckerSDK;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
 import org.linphone.core.tools.Log;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import static com.fonn.link.OTPactivity.MyPREFERENCES;
 import static com.fonn.link.OTPactivity.finish;
+import static com.fonn.link.OTPactivity.finishotp;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
 
 public class Dashboard extends AppCompatActivity {
@@ -101,15 +94,33 @@ public class Dashboard extends AppCompatActivity {
 
 
 
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_profile, R.id.nav_history, R.id.nav_setting, R.id.navLogout)
+
+
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home,R.id.nav_profile, R.id.nav_history, R.id.nav_setting, R.id.navLogout)
                 .setOpenableLayout(drawer)
                 .build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+        NavigationUI.setupWithNavController(navigationView, navController);;
 
+        navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
+
+            @Override
+            public void onDestinationChanged(@NonNull NavController controller, @NonNull NavDestination destination, @Nullable Bundle arguments) {
+                if(destination.getId() == R.id.nav_history){
+                toolbar.setVisibility(View.GONE);
+            }
+                if(destination.getId() == R.id.nav_profile){
+                    toolbar.setVisibility(View.GONE);
+                }
+                if(destination.getId() == R.id.nav_setting){
+                    toolbar.setVisibility(View.GONE);
+                }
+
+            }
+
+        });
 
         drawer.setScrimColor(Color.TRANSPARENT);
         toolbar.setNavigationIcon(R.drawable.ic_menuicon);
@@ -122,15 +133,20 @@ public class Dashboard extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        ConnectionQuality();
+
+
+
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
 
-
+        SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        finish = sharedpreferences.getBoolean(finishotp, false);
         if (!finish) {
-            startActivity(new Intent(getContext(), OTPactivity.class));
+            FonnlinkService.getCore().clearProxyConfig();
+//            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
+           // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
         }
-
+        doConnectionScan();
 
     }
 
@@ -328,6 +344,33 @@ public class Dashboard extends AppCompatActivity {
             checkAndRequestCallPermissions();
         }
         return ((TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
+    }
+
+    public void doConnectionScan(){
+        final Handler handler = new Handler();
+        Timer timer = new Timer();
+        TimerTask doAsynchronousTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            //your method here
+                            Log.d("wifi", "1min");
+                           ConnectionQuality();
+                        } catch (Exception e) {
+                        }
+                    }
+                });
+            }
+        };
+        timer.schedule(doAsynchronousTask, 0, 60000);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // super.onBackPressed();
+        //  disables back button in current screen.
     }
 
 

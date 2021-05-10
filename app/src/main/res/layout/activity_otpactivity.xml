@@ -84,17 +84,28 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
                 android:layout_marginEnd="32dp"
+                android:layout_marginBottom="36dp"
                 android:background="@drawable/buttonshape"
                 android:backgroundTint="#108BEF"
                 android:gravity="center"
                 android:text="@string/otp_button_text"
+
                 android:textColor="@color/white"
-                android:onClick="next"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout3" />
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="2:00"
+                android:textSize="30sp"
+                app:layout_constraintBottom_toTopOf="@+id/btn_verify"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
 
             <LinearLayout
                 android:id="@+id/linearLayout4"
@@ -119,6 +130,8 @@
                     android:id="@+id/tv_resend"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:onClick="resend"
                     android:paddingStart="5dp"
                     android:paddingEnd="5dp"
                     android:text="@string/resend_again_msg"
@@ -139,16 +152,19 @@
                 android:id="@+id/linearLayout3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:foregroundGravity="center"
                 android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteX="8dp">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
                 <EditText
                     android:id="@+id/otp_edit_text1"
                     android:layout_width="@dimen/et_otp_width"
                     android:layout_height="@dimen/et_otp_height"
+                    android:layout_marginStart="20dp"
                     android:layout_marginEnd="@dimen/margin_right_otp"
                     android:background="@drawable/otp_edittext"
                     android:inputType="number"

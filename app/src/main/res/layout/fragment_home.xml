@@ -162,6 +162,7 @@
                         android:id="@+id/textView9"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
                         android:gravity="center"
                         android:text="Incoming Call"
                         android:textColor="@color/black"
@@ -180,29 +181,70 @@
                         android:id="@+id/username"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="50dp"
+                        android:layout_marginBottom="80dp"
                         android:gravity="center"
                         android:text="username"
                         android:textColor="@color/black"
-                        android:textSize="36sp"
+                        android:textSize="40sp"
                         android:textStyle="bold" />
 
-                    <ImageView
-                        android:id="@+id/callAccept"
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"
-                        android:src="@drawable/design_v1accept_call_100px" />
-                    <!--                        android:onClick="callAccept"-->
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
 
-                    <TextView
-                        android:id="@+id/textView12"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Click to answer"
-                        android:textColor="@color/black"
-                        android:textSize="18sp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+
+                            <ImageView
+                                android:id="@+id/callCancel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="20dp"
+                                android:src="@drawable/design_v1end_call_100px" />
+
+                            <TextView
+                                android:id="@+id/textView16"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="@string/decline"
+                                android:textColor="@color/black"
+                                android:textSize="18sp" />
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:id="@+id/callAccept"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="20dp"
+                                android:src="@drawable/design_v1accept_call_100px" />
+
+                            <TextView
+                                android:id="@+id/textView12"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="@string/AcceptCall"
+                                android:textColor="@color/black"
+                                android:textSize="18sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!--                        android:onClick="callAccept"-->
 
                 </LinearLayout>
 
@@ -217,10 +259,11 @@
                         android:id="@+id/callstatus"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="50dp"
                         android:gravity="center"
                         android:text="@string/connected"
                         android:textColor="@color/black"
-                        android:textSize="18sp" />
+                        android:textSize="24sp" />
 
                     <TextView
                         android:id="@+id/username2"
@@ -230,7 +273,7 @@
                         android:gravity="center"
                         android:text="username"
                         android:textColor="@color/black"
-                        android:textSize="36sp"
+                        android:textSize="45sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -243,21 +286,43 @@
                         android:textColor="@color/black"
                         android:textSize="18sp" />
 
-                    <ImageView
-                        android:id="@+id/endcall"
+                    <!--                    <ImageView-->
+                    <!--                        android:id="@+id/endcall"-->
+                    <!--                        android:layout_width="match_parent"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:layout_marginBottom="20dp"-->
+                    <!--                        android:src="@drawable/design_v1end_call_100px" />-->
+
+                    <com.ebanx.swipebtn.SwipeButton
+                        android:id="@+id/swipe"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginEnd="20dp"
                         android:layout_marginBottom="20dp"
-                        android:src="@drawable/design_v1end_call_100px" />
-                    <!--                    android:onClick="endCall"-->
-                    <TextView
-                        android:id="@+id/textView15"
-                        android:layout_width="match_parent"
+                        app:button_background="@drawable/shapebuttonslider"
+                        app:button_bottom_padding="20dp"
+                        app:button_image_disabled="@drawable/ic_baseline_call_end_24"
+                        app:button_image_enabled="@drawable/ic_baseline_call_end_24"
+                        app:button_left_padding="20dp"
+                        app:button_right_padding="20dp"
+                        app:button_top_padding="20dp"
+                        app:inner_text="Swipe to End"
+                        app:inner_text_background="@drawable/shaperoundedslider"
+                        app:inner_text_bottom_padding="30dp"
+                        app:inner_text_color="@android:color/black"
+                        app:inner_text_size="16sp"
+                        app:inner_text_top_padding="30dp" />
+
+
+                    <ImageButton
+                        android:id="@+id/speaker"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Click to End"
-                        android:textColor="@color/black"
-                        android:textSize="18sp" />
+                        android:layout_gravity="center"
+                        android:background="@drawable/speaker_btn_small" />
+
+                    <!--                    android:onClick="endCall"-->
                 </LinearLayout>
 
             </LinearLayout>
