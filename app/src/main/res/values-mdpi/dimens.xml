@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="tv_ready">30dp</dimen>
+    <dimen name="defaulttextview">10sp</dimen>
+    <dimen name="tv_username">30sp</dimen>
+    <dimen name="callstatus">20sp</dimen>
+    <dimen name="margin_bottom_call">30dp</dimen>
+    <dimen name="fourteensp">10sp</dimen>
+    <dimen name="tv_profile">15sp</dimen>
+    <dimen name="tv_profile_list">12sp</dimen>
+</resources>

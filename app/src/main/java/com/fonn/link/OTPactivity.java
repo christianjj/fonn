@@ -95,21 +95,17 @@ public class OTPactivity extends AppCompatActivity {
         countdown = findViewById(R.id.countdown);
 
 
-        verify.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String gettext = "" + mEt1.getText().toString() + mEt2.getText().toString() + mEt3.getText().toString() + mEt4.getText().toString();
+        verify.setOnClickListener(view -> {
+            String gettext = "" + mEt1.getText().toString() + mEt2.getText().toString() + mEt3.getText().toString() + mEt4.getText().toString();
 
-//                if (gettext.equals("1234")){
-//                    savepref();
-//                    FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
-//                }
-//                else{
-//                    Snackbar.make(verify, "wrong otp", Snackbar.LENGTH_LONG).show();
-//                }
-
-                checkotp(gettext);
-            }
+                if (gettext.equals("1234")){
+                    savepref();
+                    FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+                }
+                else{
+                    Snackbar.make(verify, "wrong otp", Snackbar.LENGTH_LONG).show();
+                }
+           // checkotp(gettext);
         });
         mContext = OTPactivity.this;
 

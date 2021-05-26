@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 
+import com.ebanx.swipebtn.OnActiveListener;
 import com.ebanx.swipebtn.OnStateChangeListener;
 import com.ebanx.swipebtn.SwipeButton;
 import com.fonn.link.ConfigureAccountActivity;
@@ -38,7 +39,9 @@ import com.onesignal.OSDeviceState;
 import com.onesignal.OneSignal;
 
 
+import org.linphone.core.Address;
 import org.linphone.core.Call;
+import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
@@ -56,32 +59,46 @@ public class HomeFragment extends Fragment implements activityListener {
 
 
     private CoreListenerStub mCoreListener;
-    private TextView status, IncomingcallerUsername, CurrentcallerUsername, timertext, textcallstatus ;
+    private TextView
+                IncomingcallerUsername,
+                CurrentcallerUsername,
+                timertext,
+                textcallstatus ;
+
     @SuppressLint("StaticFieldLeak")
-    public static  TextView textCallCount;
-    private LinearLayout defaultLayout, incomingLayout, callActivity;
-    private ImageView callAccept, callEnd, callCancel;
+    public static TextView status;
     @SuppressLint("StaticFieldLeak")
-    public static ProgressBar progressBar;
+    public static TextView textCallCount;
+    private LinearLayout defaultLayout,
+                incomingLayout,
+                callActivity;
+    private ImageView   callAccept,
+                callCancel,
+                speakerToggle,
+                muteToggle;
+
     @SuppressLint("StaticFieldLeak")
-    public static  ImageView signal;
+    public  ProgressBar progressBar;
+
+    @SuppressLint("StaticFieldLeak")
+    public static ImageView signal;
     public static String urlads;
-    public ImageView ads;
-    public static Boolean oncall = false;
+    @SuppressLint("StaticFieldLeak")
+    public static ImageView ads;
+    public  Boolean oncall = false;
     //timer
-    boolean timerStarted = false, speakerOn = false;
+    boolean timerStarted = false,
+            speakerOn = false,
+            willcount,
+            muteon = false;
     Timer timer;
     TimerTask timerTask;
     Double time = 0.0;
-
     // count of calls
     int c;
-    boolean willcount;
     SwipeButton endCalltoggle;
-    ImageButton speaker;
     public static String Mypref = "myprefs";
     public  static  final String callcpuntpref = "callcount";
-
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -109,17 +126,9 @@ public class HomeFragment extends Fragment implements activityListener {
 
         //buttons accept and end
         callAccept = root.findViewById(R.id.callAccept);
-        endCalltoggle = (SwipeButton) root.findViewById(R.id.swipe);
-        endCalltoggle.setOnStateChangeListener(new OnStateChangeListener() {
-            @Override
-            public void onStateChange(boolean active) {
-               // Toast.makeText(getContext(), "State: " + active, Toast.LENGTH_SHORT).show();
-
-                endCall();
-            }
-        });
-        speaker = root.findViewById(R.id.speaker);
-
+        endCalltoggle =  root.findViewById(R.id.swipe);
+        speakerToggle = root.findViewById(R.id.speaker);
+        muteToggle = root.findViewById(R.id.mute);
         callCancel = root.findViewById(R.id.callCancel);
 
 
@@ -141,8 +150,12 @@ public class HomeFragment extends Fragment implements activityListener {
         //button init
         callAccept.setOnClickListener(view -> callAccept());
        // callEnd.setOnClickListener(view -> endCall());
+
+
+        endCalltoggle.setOnActiveListener(() -> endCall());
         callCancel.setOnClickListener(view -> callCancel());
-        speaker.setOnClickListener(view -> isSpeakerOn());
+        speakerToggle.setOnClickListener(view -> isSpeakerOn());
+        muteToggle.setOnClickListener(view -> isMuteon());
 
         //Connection listener
         mCoreListener = new CoreListenerStub() {
@@ -151,10 +164,10 @@ public class HomeFragment extends Fragment implements activityListener {
                 updateLed(state);
             }
         };
-        checkingcall();
-        //checkingUpdatedAds();
-        Glide.with(this).load(urlads).into(ads);
-        loadpref();
+        //checkingcall();
+        //checkingcall();
+        //Glide.with(this).load(urlads).into(ads);
+       // loadpref();
         return root;
     }
 
@@ -164,13 +177,12 @@ public class HomeFragment extends Fragment implements activityListener {
     @Override
     public void onResume() {
         super.onResume();
-        getCore().addListener(mCoreListener);
+        //getCore().addListener(mCoreListener);
         //progressBar.setVisibility(View.VISIBLE);
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
         ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
         if (proxyConfig != null) {
-
             updateLed(proxyConfig.getState());
             //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
         } else {
@@ -178,12 +190,15 @@ public class HomeFragment extends Fragment implements activityListener {
             startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
 
         }
+        Glide.with(this).load(urlads).into(ads);
         checkingcall();
         loadpref();
-        //checkingUpdatedAds();
+
 
 
     }
+
+
 
     public void callAccept() {
         FonnlinkService.getInstance().answerCall();
@@ -199,6 +214,7 @@ public class HomeFragment extends Fragment implements activityListener {
                 call = core.getCalls()[0];
             }
             call.terminate();
+
             //endCallUi();
         }
     }
@@ -220,29 +236,65 @@ public class HomeFragment extends Fragment implements activityListener {
     }
 
     private void isSpeakerOn() {
-        if (speakerOn){
-            speaker.setImageResource(R.drawable.mute_btn_small);
+        if (!speakerOn){
+            speakerToggle.setImageResource(R.drawable.speaker_on);
             AudioManager mAudioMgr;
             mAudioMgr = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
             mAudioMgr.setSpeakerphoneOn(true);
             mAudioMgr.setMode(AudioManager.MODE_NORMAL);
-            speakerOn = false;
+            speakerOn = true;
         }
         else {
-            speaker.setImageResource(R.drawable.speaker_btn_small);
+            speakerToggle.setImageResource(R.drawable.speaker_off);
             AudioManager mAudioMgr;
             mAudioMgr = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
             mAudioMgr.setSpeakerphoneOn(false);
             mAudioMgr.setMode(AudioManager.MODE_NORMAL);
-            speakerOn = true;
+            speakerOn = false;
         }
+
+
+    }
+
+    private void isMuteon(){
+        Core core = FonnlinkService.getCore();
+        if (!muteon){
+            muteToggle.setImageResource(R.drawable.mic_mute);
+
+
+            if (core.getCallsNb() > 0) {
+                Call call = core.getCurrentCall();
+                if (call == null) {
+                    // Current call can be null if paused for example
+                    call = core.getCalls()[0];
+
+                }
+                call.setMicrophoneMuted(true);
+            }
+            muteon = true;
+        }
+        else{
+            muteToggle.setImageResource(R.drawable.mic_unmute);
+
+            if (core.getCallsNb() > 0) {
+                Call call = core.getCurrentCall();
+                if (call == null) {
+                    // Current call can be null if paused for example
+                    call = core.getCalls()[0];
+                }
+                call.setMicrophoneMuted(false);
+            }
+            muteon = false;
+        }
+
+
     }
 
     public void incomingUi() {
-        FonnlinkService.getInstance().sendNotification();
+      //  FonnlinkService.getInstance().sendNotification();
         defaultLayout.setVisibility(View.GONE);
         incomingLayout.setVisibility(View.VISIBLE);
-        String displayName = FonnlinkService.getInstance().getAddressname();
+        String displayName = FonnlinkService.getInstance().getProfilename();
         IncomingcallerUsername.setText(displayName);
     }
 
@@ -303,7 +355,7 @@ public class HomeFragment extends Fragment implements activityListener {
         return String.format("%02d",hours) + " : " + String.format("%02d",minutes) + " : " + String.format("%02d",seconds);
     }
 
-    private void updateLed(RegistrationState state) {
+    public static void updateLed(RegistrationState state) {
         switch (state) {
             case Ok: // This state means you are connected, to can make and receive calls & messages
                 status.setText("READY");
@@ -311,9 +363,6 @@ public class HomeFragment extends Fragment implements activityListener {
             case None: // This state is the default state
             case Cleared: // This state is when you disconnected
                 status.setText("Disconnected");
-                break;
-            case Failed: // This one means an error happened, for example a bad password
-                status.setText("Error");
                 break;
             case Progress: // Connection is in progress, next state will be either Ok or Failed
                 status.setText("Connecting");
@@ -342,7 +391,7 @@ public class HomeFragment extends Fragment implements activityListener {
     public void onCallActivity() {
         callUi();
         oncall = true;
-        willcount = true;
+      //  willcount = true;
     }
 
     @Override
@@ -354,18 +403,20 @@ public class HomeFragment extends Fragment implements activityListener {
 
     @Override
     public void onEndCall() {
-        // endCallUi();
-        if(willcount) {
-            c += 1;
-            Log.d("count", String.valueOf(c));
-            textCallCount.setText(String.valueOf(c));
-            savepref();
-            willcount= false;
-        }
+        defauiltUi();
+//        if(willcount) {
+//            c += 1;
+//            Log.d("count", String.valueOf(c));
+//            //textCallCount.setText(String.valueOf(c));
+//            //savepref();
+//            willcount= false;
+//        }
 
         textcallstatus.setText(R.string.endingthecall);
         timerTask.cancel();
         oncall = false;
+        muteon = false;
+        speakerOn = false;
         time = 0.0;
         timerStarted = false;
         timertext.setText(formatTime(0,0,0));

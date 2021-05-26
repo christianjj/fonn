@@ -1,0 +1,22 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="nav_header_vertical_spacing">8dp</dimen>
+    <dimen name="nav_header_height">176dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="et_otp_width">60dp</dimen>
+    <dimen name="et_otp_height">60dp</dimen>
+    <dimen name="margin_right_otp">20dp</dimen>
+    <dimen name="subtitle">18sp</dimen>
+
+    <dimen name="tv_ready">40dp</dimen>
+    <dimen name="defaulttextview">14sp</dimen>
+    <dimen name="tv_username">35sp</dimen>
+    <dimen name="callstatus">22sp</dimen>
+    <dimen name="margin_bottom_call">40dp</dimen>
+    <dimen name="fourteensp">12sp</dimen>
+    <dimen name="tv_profile">20sp</dimen>
+    <dimen name="tv_profile_list">16sp</dimen>
+
+</resources>

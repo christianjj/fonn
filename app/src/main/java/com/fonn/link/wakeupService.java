@@ -18,7 +18,7 @@ public class wakeupService extends Service  {
         Intent notificationIntent = new Intent(this, getApplication().getClass());
         PendingIntent pendingIntent = PendingIntent.getActivity(this,0,notificationIntent,0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("incoming")
+                .setContentTitle("Fonnlink")
                 .setContentText("Service")
 
                 .setSmallIcon(R.drawable.ic_baseline_notifications_active_24)

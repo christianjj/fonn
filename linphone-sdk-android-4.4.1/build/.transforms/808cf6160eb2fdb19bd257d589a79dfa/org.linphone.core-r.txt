@@ -1,0 +1,3 @@
+org.linphone.core
+string linphone_sdk_branch
+string linphone_sdk_version

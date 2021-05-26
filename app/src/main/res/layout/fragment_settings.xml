@@ -60,7 +60,7 @@
                     android:textStyle="bold" />
 
                 <EditText
-                    android:id="@+id/editTextTextPersonName"
+                    android:id="@+id/et_newpass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -68,10 +68,10 @@
                     android:ems="10"
                     android:gravity="center"
                     android:hint="New Password"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPassword" />
 
                 <EditText
-                    android:id="@+id/editTextTextPersonName2"
+                    android:id="@+id/et_retypepass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -79,10 +79,10 @@
                     android:ems="10"
                     android:gravity="center"
                     android:hint="Retype Password"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPassword" />
 
                 <EditText
-                    android:id="@+id/editTextTextPersonName3"
+                    android:id="@+id/et_oldpass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
@@ -90,10 +90,10 @@
                     android:ems="10"
                     android:gravity="center"
                     android:hint="Old Password"
-                    android:inputType="textPersonName" />
+                    android:inputType="textPassword" />
 
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/button"
+                    android:id="@+id/bt_changepass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"

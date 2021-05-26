@@ -49,5 +49,8 @@ tunnel=disabled
 push_notification=1
 
 [misc]
-max_calls=10
+max_calls=1
 history_max_size=100
+
+[net]
+enable_nat_helper=0

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import com.fonn.link.fragments.HomeFragment;
 
@@ -17,6 +18,8 @@ import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+
+
 
 public class LauncherActivity extends Activity {
     private Handler mHandler;
@@ -34,11 +37,11 @@ public class LauncherActivity extends Activity {
 
         android.util.Log.i("okhttp", "sending post");
 
-        String url = "https://opis.link/api/ads";
+        String url = getString(R.string.adsapi);
         OkHttpClient client = new OkHttpClient();
 
         //  RequestBody body  = RequestBody.create(json,data.toString());
-        Request newreq = new Request.Builder().url(url).build();
+        Request newreq = new Request.Builder().url(url).get().build();
 
 
         client.newCall(newreq).enqueue(new Callback() {
@@ -56,8 +59,8 @@ public class LauncherActivity extends Activity {
                 try {
                     JSONObject object = new JSONObject(mMessage);
                     responseCode = object.getString("path");
-                    HomeFragment.urlads = "https://opis.link"+responseCode;
-                    // Log.d("okhttpp","https://opis.link"+responseCode);
+                   HomeFragment.urlads = "https://opis.link"+responseCode;
+                     Log.d("okhttpp","https://opis.link"+responseCode);
 
 
                 } catch (JSONException e) {

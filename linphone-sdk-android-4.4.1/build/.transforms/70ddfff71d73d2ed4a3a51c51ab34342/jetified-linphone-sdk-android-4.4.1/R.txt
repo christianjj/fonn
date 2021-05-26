@@ -1,0 +1,2 @@
+int string linphone_sdk_branch 0x7f140001
+int string linphone_sdk_version 0x7f140002

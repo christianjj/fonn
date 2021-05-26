@@ -12,7 +12,7 @@ force_ice_disablement=0
 
 [sip]
 guess_hostname=1
-register_only_when_network_is_up=1
+
 auto_net_state_mon=1
 
 ping_with_options=0
@@ -49,14 +49,11 @@ mime=PCMA
 rate=8000
 enabled=1
 
-[video]
-displaytype=MSAndroidTextureDisplay
 
 [misc]
 enable_basic_to_client_group_chat_room_migration=0
-enable_simple_group_chat_message_state=0
 aggregate_imdn=1
-notify_each_friend_individually_when_presence_received=0
+
 
 [app]
 activation_code_length=4

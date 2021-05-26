@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/linphone-sdk-android-4.4.1" />
             <option value="$PROJECT_DIR$/linphone-sdk-android-4.4.2" />
             <option value="$PROJECT_DIR$/linphone-sdk-android-4.5.0" />
           </set>

@@ -20,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.onesignal.OSDeviceState;
 import com.onesignal.OneSignal;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +48,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ConfigureAccountActivity extends Activity {
-    private EditText mUsername, mPassword, mDomain;
-    private RadioGroup mTransport;
+    private EditText mUsername, mPassword;
     private Button mConnect;
     ProgressDialog pd;
     private AccountCreator mAccountCreator;
@@ -63,8 +63,8 @@ public class ConfigureAccountActivity extends Activity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        CheckBox ch1=(CheckBox)findViewById(R.id.checkBox);
-        TextView textTAC = (TextView)findViewById(R.id.texttac);
+        CheckBox ch1 = findViewById(R.id.checkBox);
+        TextView textTAC = findViewById(R.id.texttac);
         textTAC.setText(Html.fromHtml("I agree to the " +
                 "<a href=https://fonn.link/terms-and-conditions/> terms & conditions</a>"));
         textTAC.setClickable(true);
@@ -153,18 +153,6 @@ public class ConfigureAccountActivity extends Activity {
         mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
         mAccountCreator.setPassword(mPassword.getText().toString());
         mAccountCreator.setTransport(TransportType.Udp);
-        // By default it will be UDP if not set, but TLS is strongly recommended
-//        switch (mTransport.getCheckedRadioButtonId()) {
-//            case R.id.transport_udp:
-//                mAccountCreator.setTransport(TransportType.Udp);
-//                break;
-//            case R.id.transport_tcp:
-//                mAccountCreator.setTransport(TransportType.Tcp);
-//                break;
-//            case R.id.transport_tls:
-//                mAccountCreator.setTransport(TransportType.Tls);
-//                break;
-//        }
 
         // This will automatically create the proxy config and auth info and add them to the Core
         ProxyConfig cfg = mAccountCreator.createProxyConfig();
@@ -180,7 +168,7 @@ public class ConfigureAccountActivity extends Activity {
 
 
     public void sendpost(){
-
+        OSDeviceState device = OneSignal.getDeviceState();
         Log.i("okhttp","sending post");
         pd = new ProgressDialog(ConfigureAccountActivity.this);
         pd.setMessage("loading");
@@ -193,15 +181,16 @@ public class ConfigureAccountActivity extends Activity {
         try {
             data.put("username",mUsername.getText().toString() );
             data.put("password", mPassword.getText().toString());
-            data.put("player_id", ""+Objects.requireNonNull(OneSignal.getDeviceState()).getUserId());
+         //   assert device != null;
+            assert device != null;
+            data.put("player_id", ""+device.getUserId());
             data.put("device_type", "android");
+            Log.d("onesignallog",data.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
         RequestBody body  = RequestBody.create(json,data.toString());
         Request newreq = new Request.Builder().url(url).post(body).build();
-
-
         client.newCall(newreq).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -211,7 +200,7 @@ public class ConfigureAccountActivity extends Activity {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                String mMessage = response.body().string();
+                String mMessage = Objects.requireNonNull(response.body()).string();
                 String responseCode = null;
                 String responseCode2 =null;
                 try {
@@ -236,13 +225,7 @@ public class ConfigureAccountActivity extends Activity {
                 }
                 Log.i("okhttp",  mMessage);
             }
-
-
         });
-
-
     }
-
-
 }
 

@@ -20,10 +20,9 @@ import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
+import com.bumptech.glide.Glide;
 import com.fonn.link.fragments.HomeFragment;
 import com.google.android.material.navigation.NavigationView;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -35,16 +34,38 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.linphone.core.Address;
+import org.linphone.core.Call;
+import org.linphone.core.CallParams;
+import org.linphone.core.CoreListenerStub;
 import org.linphone.core.tools.Log;
+
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static com.fonn.link.FonnlinkService.getCore;
 import static com.fonn.link.OTPactivity.MyPREFERENCES;
 import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.OTPactivity.finishotp;
+
+
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
 
 public class Dashboard extends AppCompatActivity {
@@ -52,6 +73,10 @@ public class Dashboard extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private PowerManager.WakeLock wakeLock;
     DrawerLayout drawer;
+    private long timeofping;
+    int pingvalue;
+    int signal;
+    private CoreListenerStub mCoreListener;
 
     @Override
     public void onAttachedToWindow() {
@@ -90,9 +115,15 @@ public class Dashboard extends AppCompatActivity {
         if (!isNetworkConnected()) {
             HomeFragment.signal.setImageResource(R.drawable.signal_0);
         }
-        //speedtest init
 
-
+//        OSDeviceState device = OneSignal.getDeviceState();
+//        assert device != null;
+//        if (device.getUserId()==null){
+//            Toast.makeText(this, "push disable", Toast.LENGTH_SHORT).show();
+//        }
+//        else {
+//            Toast.makeText(this, "push enable", Toast.LENGTH_SHORT).show();
+//        }
 
 
 
@@ -126,7 +157,6 @@ public class Dashboard extends AppCompatActivity {
         toolbar.setNavigationIcon(R.drawable.ic_menuicon);
 
 
-
     }
 
 
@@ -134,25 +164,27 @@ public class Dashboard extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-
+      //  Toast.makeText(this, ""+ping("https://www.google.com/"), Toast.LENGTH_SHORT).show();
 
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
-
+        getCore().addListener(mCoreListener);
         SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
         finish = sharedpreferences.getBoolean(finishotp, false);
         if (!finish) {
-            FonnlinkService.getCore().clearProxyConfig();
+            getCore().clearProxyConfig();
 //            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
            // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
         }
         doConnectionScan();
-
+        Glide.with(this).load(HomeFragment.urlads).into(HomeFragment.ads);
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(
-            int requestCode, String[] permissions, int[] grantResults) {
+            int requestCode, String[] permissions, @NotNull int[] grantResults) {
         // Callback for when permissions are asked to the user
         for (int i = 0; i < permissions.length; i++) {
             Log.i(
@@ -238,6 +270,7 @@ public class Dashboard extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
+        getCore().removeListener(mCoreListener);
         if (wakeLock.isHeld())
             wakeLock.release();
 
@@ -251,37 +284,61 @@ public class Dashboard extends AppCompatActivity {
         HomeFragment.signal.setVisibility(View.VISIBLE);
         NetworkInfo info = getInfo(getContext());
         if (info == null || !info.isConnected()) {
-            HomeFragment.signal.setImageResource(R.drawable.signal_0);
+           HomeFragment.signal.setImageResource(R.drawable.signal_0);
         }
 
-        if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+        long newvalue = ping("https://fonn.link/");
 
+        if (newvalue > 150)
+                pingvalue = 1;
+        else if (newvalue >= 80)
+                pingvalue = 2;
+        else if (newvalue >= 20)
+                pingvalue = 3;
+        else if (newvalue < 20)
+                pingvalue = 3;
+        if (info.getType() == ConnectivityManager.TYPE_WIFI) {
             WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             int numberOfLevels = 4;
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int level = WifiManager.calculateSignalLevel(wifiInfo.getRssi(), numberOfLevels);
             if (level == 1)
-                HomeFragment.signal.setImageResource(R.drawable.signal_1);
+                signal = 1;
             else if (level == 2)
-                HomeFragment.signal.setImageResource(R.drawable.signal_2);
+                signal  = 2;
             else if (level == 3)
-                HomeFragment.signal.setImageResource(R.drawable.signal_3);
+                signal = 3;
             else if (level == 4)
-                HomeFragment.signal.setImageResource(R.drawable.signal_4);
-            else
-                HomeFragment.signal.setImageResource(R.drawable.signal_0);
+                signal = 4;
+
         } else if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
             int networkClass = getNetworkClass(getNetworkType(getContext()));
             if (networkClass == 1)
-                HomeFragment.signal.setImageResource(R.drawable.signal_2);
+                signal = 2;
             else if (networkClass == 2)
-                HomeFragment.signal.setImageResource(R.drawable.signal_3);
+                signal = 3;
             else if (networkClass == 3)
-                HomeFragment.signal.setImageResource(R.drawable.signal_4);
-            else
-                HomeFragment.signal.setImageResource(R.drawable.signal_0);
-        } else
+                signal = 4;
+            else if (networkClass == 0)
+                signal = 0;
+
+        }
+
+        int totalvalue = signal + pingvalue / 2 ;
+
+        if (totalvalue == 1)
+            HomeFragment.signal.setImageResource(R.drawable.signal_1);
+        else if (totalvalue == 2)
+            HomeFragment.signal.setImageResource(R.drawable.signal_2);
+        else if (totalvalue == 3)
+            HomeFragment.signal.setImageResource(R.drawable.signal_3);
+        else if (totalvalue == 4)
+            HomeFragment.signal.setImageResource(R.drawable.signal_4);
+        else if (totalvalue == 0)
             HomeFragment.signal.setImageResource(R.drawable.signal_0);
+        else
+            HomeFragment.signal.setImageResource(R.drawable.signal_0);
+
     }
 
 
@@ -358,13 +415,14 @@ public class Dashboard extends AppCompatActivity {
                             //your method here
                             Log.d("wifi", "1min");
                            ConnectionQuality();
+
                         } catch (Exception e) {
                         }
                     }
                 });
             }
         };
-        timer.schedule(doAsynchronousTask, 0, 60000);
+        timer.schedule(doAsynchronousTask, 0, 10000);
     }
 
     @Override
@@ -373,6 +431,66 @@ public class Dashboard extends AppCompatActivity {
         //  disables back button in current screen.
     }
 
+    public long ping (String domain){
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            long a = (System.currentTimeMillis() % 100000);
+            Process ipprocess = runtime.exec("/system/bin/ping -c 1 "+domain);
+            ipprocess.waitFor();
+            long b = (System.currentTimeMillis() % 100000);
+            if (b <= a){
+                timeofping = ((100000 - a) + b);
+            }
+            else {
+                timeofping = (b - a );
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return timeofping;
+    }
 
 
+    private void checkingUpdatedAds() {
+
+        android.util.Log.i("okhttp", "sending post");
+
+        String url = getString(R.string.adsapi);
+        OkHttpClient client = new OkHttpClient();
+
+        //  RequestBody body  = RequestBody.create(json,data.toString());
+        Request newreq = new Request.Builder().url(url).get().build();
+
+
+        client.newCall(newreq).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull okhttp3.Call call, @NotNull IOException e) {
+                String mMessage = e.getMessage();
+                android.util.Log.i("okhttp", mMessage);
+
+            }
+
+            @Override
+            public void onResponse(@NotNull okhttp3.Call call, @NotNull Response response) throws IOException {
+                String mMessage = response.body().string();
+                String responseCode = null;
+                try {
+                    JSONObject object = new JSONObject(mMessage);
+                    responseCode = object.getString("path");
+                    HomeFragment.urlads = "https://opis.link"+responseCode;
+                    android.util.Log.d("okhttpp","https://opis.link"+responseCode);
+                   // Glide.with(getContext()).load(getInstance().urlads).into(getInstance().ads);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+
+                }
+                android.util.Log.i("okhttp", mMessage);
+            }
+
+        });
+
+    }
 }

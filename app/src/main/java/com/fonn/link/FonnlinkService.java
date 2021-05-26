@@ -1,6 +1,7 @@
 package com.fonn.link;
 
 import android.annotation.SuppressLint;
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,6 +9,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -19,15 +21,15 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.util.Log;
 import android.view.WindowManager;
-import android.widget.Toast;
-
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import android.os.PowerManager.WakeLock;
+import android.widget.Toast;
 
+import com.fonn.link.fragments.HomeFragment;
 import com.fonn.link.interfaces.activityListener;
-
 import org.linphone.core.Address;
 import org.linphone.core.Call;
 import org.linphone.core.CallParams;
@@ -36,10 +38,10 @@ import org.linphone.core.CoreListenerStub;
 import org.linphone.core.Factory;
 import org.linphone.core.LogCollectionState;
 import org.linphone.core.NatPolicy;
+import org.linphone.core.ProxyConfig;
 import org.linphone.core.Reason;
-import org.linphone.core.tools.Log;
+import org.linphone.core.RegistrationState;
 import org.linphone.mediastream.Version;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,6 +49,8 @@ import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.fonn.link.fragments.HomeFragment.Mypref;
+import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
 
 public class FonnlinkService extends Service implements SensorEventListener {
@@ -60,14 +64,15 @@ public class FonnlinkService extends Service implements SensorEventListener {
     private Sensor mProximity;
     private PowerManager mPowerManager;
     private WakeLock mProximityWakelock;
-
-
+    boolean willcount;
+    int c;
     private Handler mHandler;
     private Timer mTimer;
     public static Call mcall;
     private Core mCore;
     private CoreListenerStub mCoreListener;
     NotificationManager notificationManager;
+
     public static boolean isReady() {
         return sInstance != null;
     }
@@ -97,12 +102,11 @@ public class FonnlinkService extends Service implements SensorEventListener {
         // The first call to liblinphone SDK MUST BE to a Factory method
         // So let's enable the library debug logs & log collection
         String basePath = getFilesDir().getAbsolutePath();
-        Factory.instance().setLogCollectionPath(basePath);
-        Factory.instance().enableLogCollection(LogCollectionState.Enabled);
+       // Factory.instance().setLogCollectionPath(basePath);
+       // Factory.instance().enableLogCollection(LogCollectionState.Enabled);
         Factory.instance().setDebugMode(true, getString(R.string.app_name));
-
         // Dump some useful information about the device we're running on
-        Log.i(START_LINPHONE_LOGS);
+        //Log.i(START_LINPHONE_LOGS);
         dumpDeviceInformation();
         dumpInstalledLinphoneInformation();
         mPowerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
@@ -115,31 +119,48 @@ public class FonnlinkService extends Service implements SensorEventListener {
             @Override
             public void onCallStateChanged(Core core, Call call, Call.State state, String message) {
 
-//                Toast.makeText(FonnlinkService.this, message, Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(FonnlinkService.this, message, Toast.LENGTH_SHORT).show();
                 if (state == Call.State.IncomingReceived) {
                     // For this sample we will automatically answer incoming calls
+                    sendNotification();
                     getInstance().activityListener.onIncomingActivity();
 
-                    Intent intent = new Intent(getContext(), Dashboard.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+ //                   if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+//                        Intent intent = new Intent(FonnlinkService.this, Dashboard.class);
+//                        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                        //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                        intent.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED +
+//                                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD +
+//                                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON +
+//                                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+//                        startActivity(intent);
+   //                 }
 
-                    intent.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED +
-                            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD +
-                            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON +
-                            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-                    startActivity(intent);
 
                 } else if (state == Call.State.Connected) {
                     // This stats means the call has been established, let's start the call activity
 
                     enableProximitySensing(true);
+                    willcount = true;
                     notificationManager.cancel(10);
                     getInstance().activityListener.onCallActivity();
 
-                }
+                } else if ((state == Call.State.End) || (state == Call.State.Released)) {
+                    notificationManager.cancel(10);
+                    getInstance().activityListener.onEndCall();
+                    if(willcount) {
+                        c = Integer.parseInt(HomeFragment.textCallCount.getText().toString());
+                        c += 1;
+                        HomeFragment.textCallCount.setText(String.valueOf(c));
+                        savepref();
+                        willcount= false;
+                    }
 
-                else if ((state == Call.State.End) || (state == Call.State.Released)) {
+                    ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
+                    if (proxyConfig != null) {
+                        HomeFragment.updateLed(proxyConfig.getState());
+                        //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
+                    }
 
                     if (call.getErrorInfo().getReason() == Reason.Declined) {
                         notificationManager.cancel(10);
@@ -149,16 +170,24 @@ public class FonnlinkService extends Service implements SensorEventListener {
                             new Intent().setClass(getApplicationContext(), wakeupService.class));
 
                     enableProximitySensing(false);
-                    getInstance().activityListener.onEndCall();
-                    notificationManager.cancel(10);
                 }
 
 
-
-
-
-
             }
+
+            public void onRegistrationStateChanged(Core core, ProxyConfig proxyConfig, RegistrationState state, String s) {
+
+                if (state == RegistrationState.Ok) {
+                    HomeFragment.status.setText(R.string.ready);
+                } else if (state == RegistrationState.Cleared) {
+                    HomeFragment.status.setText(R.string.disconnected);
+                }  else if (state == RegistrationState.Progress) {
+                    HomeFragment.status.setText(R.string.connecting);
+                }
+            }
+
+
+
 
         };
 
@@ -170,9 +199,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
             // The factory config is used to override any other setting, let's copy it each time
             copyFromPackage(R.raw.linphonerc_factory, "linphonerc");
         } catch (IOException ioe) {
-            Log.e(ioe);
+            //   Log.e(ioe);
         }
-
 
 
         // Create the Core and add our listener
@@ -189,9 +217,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
         configureCore();
 
 
-
-
     }
+
     /* Proximity sensor stuff */
     private void enableProximitySensing(boolean enable) {
         if (enable) {
@@ -247,23 +274,22 @@ public class FonnlinkService extends Service implements SensorEventListener {
         mTimer.schedule(lTask, 0, 20);
 
 //
-        Core core = getCore();
-        Call call = core.getCurrentCall();
-        if (call == null) {
+//        Core core = getCore();
+//        Call call = core.getCurrentCall();
+//        if (call == null) {
+//
+//            final Handler handler = new Handler();
+//            handler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    // Do something after 5s = 5000ms
+//                    stopService(
+//                            new Intent().setClass(getApplicationContext(), wakeupService.class));
+//                }
+//            }, 3000);
 
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    // Do something after 5s = 5000ms
-                    stopService(
-                            new Intent().setClass(getApplicationContext(), wakeupService.class));
-                }
-            }, 3000);
 
-
-
-        }
+        //     }
 
 
         return START_STICKY;
@@ -273,16 +299,14 @@ public class FonnlinkService extends Service implements SensorEventListener {
 
     @Override
     public void onDestroy() {
-        if(getCore() != null){
-            mCore.removeListener(mCoreListener);
-            mTimer.cancel();
-            mCore.stop();
-            // A stopped Core can be started again
-            // To ensure resources are freed, we must ensure it will be garbage collected
-            mCore = null;
-            // Don't forget to free the singleton as well
-            sInstance = null;
-        }
+       // mCore.removeListener(mCoreListener);
+        mTimer.cancel();
+        mCore.stop();
+        // A stopped Core can be started again
+        // To ensure resources are freed, we must ensure it will be garbage collected
+        mCore = null;
+        // Don't forget to free the singleton as well
+        sInstance = null;
 
 
         super.onDestroy();
@@ -329,7 +353,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
         File f = new File(userCerts);
         if (!f.exists()) {
             if (!f.mkdir()) {
-                Log.e(userCerts + " can't be created.");
+                //     Log.e(userCerts + " can't be created.");
             }
         }
         mCore.setUserCertificatesPath(userCerts);
@@ -351,7 +375,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
             sb.append(abi).append(", ");
         }
         sb.append("\n");
-        Log.i(sb.toString());
+        //  Log.i(sb.toString());
     }
 
     private void dumpInstalledLinphoneInformation() {
@@ -359,15 +383,15 @@ public class FonnlinkService extends Service implements SensorEventListener {
         try {
             info = getPackageManager().getPackageInfo(getPackageName(), 0);
         } catch (PackageManager.NameNotFoundException nnfe) {
-            Log.e(nnfe);
+            //  Log.e(nnfe);
         }
 
         if (info != null) {
-            Log.i(
-                    "[Service] Linphone version is ",
-                    info.versionName + " (" + info.versionCode + ")");
+//            Log.i(
+//                    "[Service] Linphone version is ",
+//                    info.versionName + " (" + info.versionCode + ")");
         } else {
-            Log.i("[Service] Linphone version is unknown");
+//            Log.i("[Service] Linphone version is unknown");
         }
     }
 
@@ -410,6 +434,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
         }
         return displayName;
     }
+
     public String getAddressname() {
         String address = getAddressDisplayName(FonnlinkService.getCore().getCurrentCallRemoteAddress());
         return address;
@@ -428,7 +453,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
             call.acceptWithParams(params);
         }
     }
-    public  void lookupCurrentCall() {
+
+    public void lookupCurrentCall() {
         if (FonnlinkService.getCore() != null) {
             for (Call call : FonnlinkService.getCore().getCalls()) {
                 if (Call.State.IncomingReceived == call.getState()
@@ -447,28 +473,28 @@ public class FonnlinkService extends Service implements SensorEventListener {
         String address = getAddressDisplayName(FonnlinkService.getCall().getCore().getCurrentCallRemoteAddress());
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String Notification_Channel_ID = "christian";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            @SuppressLint("WrongConstant") NotificationChannel notificationChannel = new NotificationChannel(Notification_Channel_ID ,
-                    "My Notification",NotificationManager.IMPORTANCE_HIGH );
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            @SuppressLint("WrongConstant") NotificationChannel notificationChannel = new NotificationChannel(Notification_Channel_ID,
+                    "My Notification", NotificationManager.IMPORTANCE_HIGH);
             notificationChannel.setDescription("app testing FCM");
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
-            notificationChannel.setVibrationPattern(new long[]{0,1000,500,1000});
+            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
             notificationChannel.enableVibration(true);
             notificationChannel.setShowBadge(true);
             notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             notificationManager.createNotificationChannel(notificationChannel);
         }
-        Intent intent = new Intent(getApplicationContext(), LauncherActivity.class);
+        Intent intent = new Intent(this, LauncherActivity.class);
         Intent intentAccept = new Intent(getApplicationContext(), CallReceiver.class);
-        intentAccept.putExtra("action","Accept");
+        intentAccept.putExtra("action", "Accept");
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 113,intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent pIntentAccept = PendingIntent.getBroadcast(getApplicationContext(),0,intentAccept,PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 113, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pIntentAccept = PendingIntent.getBroadcast(getApplicationContext(), 0, intentAccept, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,Notification_Channel_ID);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, Notification_Channel_ID);
         notificationBuilder.setAutoCancel(false)
-             //   .setSound(null, null)
+                //   .setSound(null, null)
 
                 .setWhen(System.currentTimeMillis())
                 .setTicker("Hearty365")
@@ -479,7 +505,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
                 .setSmallIcon(R.mipmap.fonnicon)
-                .setFullScreenIntent(pendingIntent,true)
+                .setFullScreenIntent(pendingIntent, true)
                 .setAutoCancel(true)
                 .setOngoing(true)
 //                .addAction(R.drawable.ic_baseline_call_24, getString(R.string.AcceptCall),
@@ -487,17 +513,19 @@ public class FonnlinkService extends Service implements SensorEventListener {
 //                .addAction(R.drawable.ic_baseline_call_end_24, getString(R.string.DeclineCall),
 //                        pIntentDecline)
                 .setContentInfo("info");
-        notificationManager.notify(10,notificationBuilder.build());
+        notificationManager.notify(10, notificationBuilder.build());
 
 
     }
+
     public String getProfilename() {
         String profilename = getAddressDisplayName(FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress());
         return profilename;
 
     }
+
     public String getProfilenameaddress() {
-        String profileuseraddress =  FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress().asStringUriOnly();
+        String profileuseraddress = FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress().asStringUriOnly();
         return profileuseraddress;
     }
 
@@ -507,7 +535,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
         if (sensorEvent.timestamp == 0) return;
         if (isProximitySensorNearby(sensorEvent)) {
             if (!mProximityWakelock.isHeld()) {
-                mProximityWakelock.acquire();
+                mProximityWakelock.acquire(10*60*1000L /*10 minutes*/);
             }
         } else {
             if (mProximityWakelock.isHeld()) {
@@ -522,12 +550,12 @@ public class FonnlinkService extends Service implements SensorEventListener {
 
         final float distanceInCm = event.values[0];
         final float maxDistance = event.sensor.getMaximumRange();
-        Log.d(
-                "[Manager] Proximity sensor report ["
-                        + distanceInCm
-                        + "] , for max range ["
-                        + maxDistance
-                        + "]");
+//        Log.d(
+//                "[Manager] Proximity sensor report ["
+//                        + distanceInCm
+//                        + "] , for max range ["
+//                        + maxDistance
+//                        + "]");
 
         if (maxDistance <= threshold) {
             // Case binary 0/1 and short sensors
@@ -540,4 +568,13 @@ public class FonnlinkService extends Service implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
+
+    public void savepref(){
+        SharedPreferences sharedpreferences = getContext().getSharedPreferences(Mypref, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString(callcpuntpref, HomeFragment.textCallCount.getText().toString());
+        editor.apply();
+    }
+
 }
+

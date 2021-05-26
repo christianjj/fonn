@@ -4,13 +4,8 @@ import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Build;
-import android.os.Looper;
-import android.widget.Toast;
-
 import com.onesignal.OSNotification;
-import com.onesignal.OSNotificationReceivedEvent;
 import com.onesignal.OneSignal;
-
 import org.json.JSONObject;
 
 public class Applicationclass extends Application {

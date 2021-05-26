@@ -1,3 +1,5 @@
+include ':linphone-sdk-android-4.4.1'
+include ':linphone-sdk-android-4.5.0'
 include ':linphone-sdk-android-4.4.2'
 include ':linphone-sdk-android-4.5.0'
 include ':app'
