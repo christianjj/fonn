@@ -13,6 +13,7 @@ import com.onesignal.OSNotificationReceivedEvent;
 import com.onesignal.OneSignal;
 import com.onesignal.OneSignal.OSRemoteNotificationReceivedHandler;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.linphone.core.Call;
 import org.linphone.core.Core;

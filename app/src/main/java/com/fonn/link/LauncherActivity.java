@@ -106,7 +106,7 @@ public class LauncherActivity extends Activity {
     }
 
     // This thread will periodically check if the Service is ready, and then call onServiceReady
-    private class ServiceWaitThread extends Thread {
+    public class ServiceWaitThread extends Thread {
         public void run() {
             while (!FonnlinkService.isReady()) {
                 try {

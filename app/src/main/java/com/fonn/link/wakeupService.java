@@ -15,14 +15,14 @@ public class wakeupService extends Service  {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Intent notificationIntent = new Intent(this, getApplication().getClass());
+        Intent notificationIntent = new Intent(this, LauncherActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,0,notificationIntent,0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Fonnlink")
-                .setContentText("Service")
-
-                .setSmallIcon(R.drawable.ic_baseline_notifications_active_24)
+                .setContentText("Fonnlink is running")
+                .setSmallIcon(R.drawable.appicon,1)
                 .setContentIntent(pendingIntent)
+                .setSilent(true)
                 .build();
         startForeground(1,notification);
         Intent service = new Intent(this, FonnlinkService.class);

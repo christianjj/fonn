@@ -12,6 +12,7 @@ public class Applicationclass extends Application {
 
     private static final String ONESIGNAL_APP_ID = "9789faf0-7a32-4d38-8a4d-16ce13025528";
     public static final String CHANNEL_ID = "fonnlinkChannel";
+
     @Override
     public void onCreate() {
         super.onCreate();

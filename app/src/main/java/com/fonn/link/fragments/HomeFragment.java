@@ -58,24 +58,24 @@ import static com.fonn.link.OTPactivity.MyPREFERENCES;
 public class HomeFragment extends Fragment implements activityListener {
 
 
-    private CoreListenerStub mCoreListener;
+    CoreListenerStub mCoreListener;
     private TextView
-                IncomingcallerUsername,
-                CurrentcallerUsername,
-                timertext,
-                textcallstatus ;
+            IncomingcallerUsername,
+            CurrentcallerUsername,
+            timertext,
+            textcallstatus ;
 
     @SuppressLint("StaticFieldLeak")
     public static TextView status;
     @SuppressLint("StaticFieldLeak")
     public static TextView textCallCount;
     private LinearLayout defaultLayout,
-                incomingLayout,
-                callActivity;
+            incomingLayout,
+            callActivity;
     private ImageView   callAccept,
-                callCancel,
-                speakerToggle,
-                muteToggle;
+            callCancel,
+            speakerToggle,
+            muteToggle;
 
     @SuppressLint("StaticFieldLeak")
     public  ProgressBar progressBar;
@@ -149,7 +149,7 @@ public class HomeFragment extends Fragment implements activityListener {
 
         //button init
         callAccept.setOnClickListener(view -> callAccept());
-       // callEnd.setOnClickListener(view -> endCall());
+        // callEnd.setOnClickListener(view -> endCall());
 
 
         endCalltoggle.setOnActiveListener(() -> endCall());
@@ -165,9 +165,9 @@ public class HomeFragment extends Fragment implements activityListener {
             }
         };
         //checkingcall();
-        //checkingcall();
+        checkingcall();
         //Glide.with(this).load(urlads).into(ads);
-       // loadpref();
+        loadpref();
         return root;
     }
 
@@ -181,17 +181,12 @@ public class HomeFragment extends Fragment implements activityListener {
         //progressBar.setVisibility(View.VISIBLE);
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
-        ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
-        if (proxyConfig != null) {
-            updateLed(proxyConfig.getState());
-            //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
-        } else {
-            // No account configured, we display the configuration activity
-            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
 
-        }
         Glide.with(this).load(urlads).into(ads);
-        checkingcall();
+        if (FonnlinkService.isReady()) {
+            checkingcall();
+        }
+
         loadpref();
 
 
@@ -229,7 +224,7 @@ public class HomeFragment extends Fragment implements activityListener {
             }
             call.decline(Reason.Declined);
         }
-            defauiltUi();
+        defauiltUi();
 
 
 
@@ -249,6 +244,7 @@ public class HomeFragment extends Fragment implements activityListener {
             AudioManager mAudioMgr;
             mAudioMgr = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
             mAudioMgr.setSpeakerphoneOn(false);
+            mAudioMgr.setMode(AudioManager.MODE_NORMAL);
             mAudioMgr.setMode(AudioManager.MODE_NORMAL);
             speakerOn = false;
         }
@@ -291,7 +287,7 @@ public class HomeFragment extends Fragment implements activityListener {
     }
 
     public void incomingUi() {
-      //  FonnlinkService.getInstance().sendNotification();
+        //  FonnlinkService.getInstance().sendNotification();
         defaultLayout.setVisibility(View.GONE);
         incomingLayout.setVisibility(View.VISIBLE);
         String displayName = FonnlinkService.getInstance().getProfilename();
@@ -391,7 +387,7 @@ public class HomeFragment extends Fragment implements activityListener {
     public void onCallActivity() {
         callUi();
         oncall = true;
-      //  willcount = true;
+        //  willcount = true;
     }
 
     @Override

@@ -27,7 +27,7 @@ public class CallReceiver extends BroadcastReceiver {
 //
 //        }
         //This is used to close the notification tray
-        notificationManager.cancel(10);
+        //notificationManager.cancel(10);
         Intent it = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         context.sendBroadcast(it);
     }

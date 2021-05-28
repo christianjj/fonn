@@ -1,7 +1,6 @@
 package com.fonn.link;
 
 import android.annotation.SuppressLint;
-import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -21,27 +20,26 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.util.Log;
-import android.view.WindowManager;
+import android.os.PowerManager.WakeLock;
+
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import android.os.PowerManager.WakeLock;
-import android.widget.Toast;
 
 import com.fonn.link.fragments.HomeFragment;
 import com.fonn.link.interfaces.activityListener;
+
 import org.linphone.core.Address;
 import org.linphone.core.Call;
 import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.Factory;
-import org.linphone.core.LogCollectionState;
 import org.linphone.core.NatPolicy;
 import org.linphone.core.ProxyConfig;
 import org.linphone.core.Reason;
 import org.linphone.core.RegistrationState;
 import org.linphone.mediastream.Version;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -70,7 +68,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
     private Timer mTimer;
     public static Call mcall;
     private Core mCore;
-    private CoreListenerStub mCoreListener;
+    public CoreListenerStub mCoreListener;
     NotificationManager notificationManager;
 
     public static boolean isReady() {
@@ -113,6 +111,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(Context.SENSOR_SERVICE);
         mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mHandler = new Handler();
+
+
         // This will be our main Core listener, it will change activities depending on events
         mCoreListener = new CoreListenerStub() {
             @SuppressLint("WrongConstant")
@@ -124,8 +124,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
                     // For this sample we will automatically answer incoming calls
                     sendNotification();
                     getInstance().activityListener.onIncomingActivity();
-
- //                   if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
 //                        Intent intent = new Intent(FonnlinkService.this, Dashboard.class);
 //                        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 //                        //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -134,7 +133,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
 //                                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON +
 //                                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 //                        startActivity(intent);
-   //                 }
+                   }
 
 
                 } else if (state == Call.State.Connected) {
@@ -154,12 +153,6 @@ public class FonnlinkService extends Service implements SensorEventListener {
                         HomeFragment.textCallCount.setText(String.valueOf(c));
                         savepref();
                         willcount= false;
-                    }
-
-                    ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
-                    if (proxyConfig != null) {
-                        HomeFragment.updateLed(proxyConfig.getState());
-                        //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
                     }
 
                     if (call.getErrorInfo().getReason() == Reason.Declined) {
@@ -214,6 +207,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
         mCore.setEnableSipUpdate(1);
         mCore.enableEchoCancellation(true);
         mCore.enableDnsSrv(true);
+
+
         configureCore();
 
 
@@ -249,12 +244,14 @@ public class FonnlinkService extends Service implements SensorEventListener {
             return START_STICKY;
         }
 
+
+
         // Our Service has been started, we can keep our reference on it
         // From now one the Launcher will be able to call onServiceReady()
         sInstance = this;
 
 
-        mCore.enterBackground();
+       // mCore.enterBackground();
         // Core must be started after being created and configured
         mCore.start();
         // We also MUST call the iterate() method of the Core on a regular basis
@@ -299,7 +296,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
 
     @Override
     public void onDestroy() {
-       // mCore.removeListener(mCoreListener);
+        mCore.removeListener(mCoreListener);
         mTimer.cancel();
         mCore.stop();
         // A stopped Core can be started again
@@ -486,11 +483,11 @@ public class FonnlinkService extends Service implements SensorEventListener {
             notificationManager.createNotificationChannel(notificationChannel);
         }
         Intent intent = new Intent(this, LauncherActivity.class);
-        Intent intentAccept = new Intent(getApplicationContext(), CallReceiver.class);
-        intentAccept.putExtra("action", "Accept");
+//        Intent intentAccept = new Intent(getApplicationContext(), CallReceiver.class);
+//        intentAccept.putExtra("action", "Accept");
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 113, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        PendingIntent pIntentAccept = PendingIntent.getBroadcast(getApplicationContext(), 0, intentAccept, PendingIntent.FLAG_UPDATE_CURRENT);
+       // PendingIntent pIntentAccept = PendingIntent.getBroadcast(getApplicationContext(), 0, intentAccept, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, Notification_Channel_ID);
         notificationBuilder.setAutoCancel(false)
@@ -504,10 +501,11 @@ public class FonnlinkService extends Service implements SensorEventListener {
                 .setVibrate(new long[]{Notification.DEFAULT_VIBRATE})
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
-                .setSmallIcon(R.mipmap.fonnicon)
+                .setSmallIcon(R.drawable.ic_baseline_call_24)
                 .setFullScreenIntent(pendingIntent, true)
-                .setAutoCancel(true)
                 .setOngoing(true)
+                .setAutoCancel(true)
+
 //                .addAction(R.drawable.ic_baseline_call_24, getString(R.string.AcceptCall),
 //                        pIntentAccept)
 //                .addAction(R.drawable.ic_baseline_call_end_24, getString(R.string.DeclineCall),
@@ -575,6 +573,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
         editor.putString(callcpuntpref, HomeFragment.textCallCount.getText().toString());
         editor.apply();
     }
+
+
 
 }
 
