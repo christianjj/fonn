@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -49,6 +50,7 @@ import org.linphone.core.Reason;
 import org.linphone.core.RegistrationState;
 
 
+import java.text.BreakIterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -76,11 +78,11 @@ public class HomeFragment extends Fragment implements activityListener {
             callCancel,
             speakerToggle,
             muteToggle;
-
     @SuppressLint("StaticFieldLeak")
     public  ProgressBar progressBar;
 
     @SuppressLint("StaticFieldLeak")
+    public static String total_counts;
     public static ImageView signal;
     public static String urlads;
     @SuppressLint("StaticFieldLeak")
@@ -91,14 +93,19 @@ public class HomeFragment extends Fragment implements activityListener {
             speakerOn = false,
             willcount,
             muteon = false;
+
+
     Timer timer;
     TimerTask timerTask;
+    private Handler handler;
+    private Runnable handlerTask;
     Double time = 0.0;
     // count of calls
     int c;
     SwipeButton endCalltoggle;
     public static String Mypref = "myprefs";
     public  static  final String callcpuntpref = "callcount";
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -136,7 +143,7 @@ public class HomeFragment extends Fragment implements activityListener {
         textcallstatus = root.findViewById(R.id.callstatus);
 
         //timer Init
-        timertext = root.findViewById(R.id.timer);
+       timertext = root.findViewById(R.id.timer);
         timer = new Timer();
 
         //interface init
@@ -176,18 +183,18 @@ public class HomeFragment extends Fragment implements activityListener {
 
     @Override
     public void onResume() {
-        super.onResume();
+
         //getCore().addListener(mCoreListener);
         //progressBar.setVisibility(View.VISIBLE);
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
-
-        Glide.with(this).load(urlads).into(ads);
+        super.onResume();
         if (FonnlinkService.isReady()) {
             checkingcall();
         }
 
         loadpref();
+
 
 
 
@@ -200,7 +207,6 @@ public class HomeFragment extends Fragment implements activityListener {
 
     }
     public void endCall() {
-
         Core core = FonnlinkService.getCore();
         if (core.getCallsNb() > 0) {
             Call call = core.getCurrentCall();
@@ -249,13 +255,14 @@ public class HomeFragment extends Fragment implements activityListener {
             speakerOn = false;
         }
 
-
     }
 
     private void isMuteon(){
+
+
         Core core = FonnlinkService.getCore();
         if (!muteon){
-            muteToggle.setImageResource(R.drawable.mic_mute);
+            muteToggle.setImageResource(R.drawable.mic_on);
 
 
             if (core.getCallsNb() > 0) {
@@ -270,7 +277,7 @@ public class HomeFragment extends Fragment implements activityListener {
             muteon = true;
         }
         else{
-            muteToggle.setImageResource(R.drawable.mic_unmute);
+            muteToggle.setImageResource(R.drawable.mic_off);
 
             if (core.getCallsNb() > 0) {
                 Call call = core.getCurrentCall();
@@ -282,6 +289,8 @@ public class HomeFragment extends Fragment implements activityListener {
             }
             muteon = false;
         }
+
+
 
 
     }
@@ -315,6 +324,7 @@ public class HomeFragment extends Fragment implements activityListener {
         {
             timerStarted = false;
             timerTask.cancel();
+
         }
         String displayName = FonnlinkService.getInstance().getAddressname();
         CurrentcallerUsername.setText(displayName);
@@ -322,17 +332,51 @@ public class HomeFragment extends Fragment implements activityListener {
     }
     private void startTimer()
     {
-        timerTask = new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                time++;
-                timertext.setText(getTimerText());
-            }
 
-        };
-        timer.scheduleAtFixedRate(timerTask, 0 ,1000);
+//        timerTask = new TimerTask()
+//        {
+//
+//            @Override
+//            public void run()
+//            {
+//                time++;
+//                timertext.setText(getTimerText());
+//            }
+//
+//        };
+//        timer.scheduleAtFixedRate(timerTask, 0 ,1000);
+
+//        timer.scheduleAtFixedRate(new TimerTask() {
+//            @Override
+//            public void run() {
+//                timerTask = new TimerTask() {
+//                    @Override
+//                    public void run() {
+//
+//                        time++;
+//                        timertext.setText(getTimerText());
+//
+//                    }
+//                };
+//            }
+//        }, 0, 1000);
+
+       timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                getActivity().runOnUiThread(new TimerTask() {
+                    @Override
+                    public void run() {
+                        time++;
+                        timertext.setText(getTimerText());
+                    }
+                });
+            }
+        }, 0, 1000);
+
+
+
+
     }
 
     private String getTimerText()
@@ -354,14 +398,14 @@ public class HomeFragment extends Fragment implements activityListener {
     public static void updateLed(RegistrationState state) {
         switch (state) {
             case Ok: // This state means you are connected, to can make and receive calls & messages
-                status.setText("READY");
+                status.setText(R.string.ready);
                 break;
             case None: // This state is the default state
             case Cleared: // This state is when you disconnected
-                status.setText("Disconnected");
+                status.setText(R.string.disconnected);
                 break;
             case Progress: // Connection is in progress, next state will be either Ok or Failed
-                status.setText("Connecting");
+                status.setText(R.string.connecting);
                 break;
         }
     }
@@ -409,13 +453,16 @@ public class HomeFragment extends Fragment implements activityListener {
 //        }
 
         textcallstatus.setText(R.string.endingthecall);
-        timerTask.cancel();
+
+        //timer.cancel();
         oncall = false;
         muteon = false;
         speakerOn = false;
+        timer.cancel();
         time = 0.0;
         timerStarted = false;
         timertext.setText(formatTime(0,0,0));
+        timer = new Timer();
         onesecdalay();
 
     }

@@ -23,7 +23,7 @@ import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
 import com.fonn.link.R;
 import com.fonn.link.profile_details;
-import com.fonn.link.recycleAdapter;
+import com.fonn.link.ProfileRecycleAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,14 +33,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProfileFragment extends Fragment implements recycleAdapter.mOnClickListener {
+import static com.fonn.link.Dashboard.countDownTimer;
+
+public class ProfileFragment extends Fragment implements ProfileRecycleAdapter.mOnClickListener {
 
     TextView tv_displayname,
              tv_topup,
              tv_addnew;
 
-    public String urllink = "https://opis.link/api/profile";
-    private recycleAdapter RecycleAdapter;
+
+    private ProfileRecycleAdapter profileRecycleAdapter;
     ArrayList<profile_details> userList;
     private RecyclerView recyclerView;
     private RequestQueue requestQueue;
@@ -58,7 +60,7 @@ public class ProfileFragment extends Fragment implements recycleAdapter.mOnClick
         toolbar.setNavigationOnClickListener(v -> {
             FonnlinkService.getInstance().startActivity(getContext(), Dashboard.class);
         });
-
+        //countDownTimer.cancel();
         recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         userList = new ArrayList<>();
@@ -81,7 +83,7 @@ public class ProfileFragment extends Fragment implements recycleAdapter.mOnClick
     }
 
     private void parseJson() {
-
+        String urllink = getString(R.string.server_domain)+"/api/profile";
         try {
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("username", FonnlinkService.getInstance().getProfilename());
@@ -91,17 +93,17 @@ public class ProfileFragment extends Fragment implements recycleAdapter.mOnClick
                     JSONArray Jarray = response.getJSONArray("callURLs");
                     for (int i = 0; i < Jarray.length(); i++) {
                         object = Jarray.getJSONObject(i);
-                        String name = object.getString("displayName");
+                        String name = object.getString("callURL");
                         String balance = object.getString("totalBalance");
-                        String number = object.getString("mobileNumber");
+                        //String number = object.getString("mobileNumber");
                         String status = object.getString("status");
-                        userList.add(new profile_details(name, balance, number, status));
+                        userList.add(new profile_details(name, balance, status));
 
                     }
                     Log.d("volley", "" + object.getString("displayName"));
-                    RecycleAdapter = new recycleAdapter(getContext(), userList);
+                    profileRecycleAdapter = new ProfileRecycleAdapter(getContext(), userList);
                     recyclerView.setItemAnimator(new DefaultItemAnimator());
-                    recyclerView.setAdapter(RecycleAdapter);
+                    recyclerView.setAdapter(profileRecycleAdapter);
 
                 } catch (JSONException e) {
                     e.printStackTrace();

@@ -43,4 +43,6 @@
     <string name="error">Error</string>
     <string name="connecting">Connecting</string>
     <string name="adsapi">https://opis.link/api/ads</string>
+    <string name="version">v.0.3.8</string>
+    <string name="server_domain">https://test.opis.link</string>
 </resources>

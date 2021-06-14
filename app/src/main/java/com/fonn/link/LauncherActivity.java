@@ -39,7 +39,6 @@ public class LauncherActivity extends Activity {
 
         String url = getString(R.string.adsapi);
         OkHttpClient client = new OkHttpClient();
-
         //  RequestBody body  = RequestBody.create(json,data.toString());
         Request newreq = new Request.Builder().url(url).get().build();
 
@@ -61,8 +60,6 @@ public class LauncherActivity extends Activity {
                     responseCode = object.getString("path");
                    HomeFragment.urlads = "https://opis.link"+responseCode;
                      Log.d("okhttpp","https://opis.link"+responseCode);
-
-
                 } catch (JSONException e) {
                     e.printStackTrace();
 

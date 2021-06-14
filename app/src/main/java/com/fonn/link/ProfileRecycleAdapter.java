@@ -17,24 +17,23 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static android.content.Context.CLIPBOARD_SERVICE;
 
-public class recycleAdapter extends RecyclerView.Adapter<recycleAdapter.MyViewHolder> {
+public class ProfileRecycleAdapter extends RecyclerView.Adapter<ProfileRecycleAdapter.MyViewHolder> {
 
 
     private Context context;
     private ArrayList<profile_details> userList;
 
-    public recycleAdapter(Context context, ArrayList<profile_details> userList){
+    public ProfileRecycleAdapter(Context context, ArrayList<profile_details> userList){
         this.context = context;
         this.userList = userList;
     }
 
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView nameText, BalnceText,number,status;
+        private TextView nameText, BalnceText,status;
         Button topup;
         ImageView copy;
 
@@ -45,7 +44,7 @@ public class recycleAdapter extends RecyclerView.Adapter<recycleAdapter.MyViewHo
             BalnceText = itemView.findViewById(R.id.balance);
             topup = itemView.findViewById(R.id.topup);
             copy = itemView.findViewById(R.id.copylink);
-            number = itemView.findViewById(R.id.number);
+            //number = itemView.findViewById(R.id.number);
             status = itemView.findViewById(R.id.linkstatus);
 
         }
@@ -54,7 +53,7 @@ public class recycleAdapter extends RecyclerView.Adapter<recycleAdapter.MyViewHo
 
     @NonNull
     @Override
-    public recycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ProfileRecycleAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View itemView;
         LayoutInflater inflater = LayoutInflater.from(context);
         itemView = inflater.inflate(R.layout.profile_list, parent, false);
@@ -62,7 +61,7 @@ public class recycleAdapter extends RecyclerView.Adapter<recycleAdapter.MyViewHo
     }
 
     @Override
-    public void onBindViewHolder(@NonNull recycleAdapter.MyViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ProfileRecycleAdapter.MyViewHolder holder, int position) {
         String newvalue;
         holder.nameText.setText(userList.get(position).getName());
         holder.BalnceText.setText(userList.get(position).getBalance());
@@ -74,15 +73,15 @@ public class recycleAdapter extends RecyclerView.Adapter<recycleAdapter.MyViewHo
         }
 
         holder.status.setText(newvalue);
-        holder.number.setText(userList.get(position).getNumber());
+      //  holder.number.setText(userList.get(position).getNumber());
         holder.topup.setOnClickListener(view -> {
             Intent viewIntent = new Intent("android.intent.action.VIEW",
-                            Uri.parse("https://opis.link/payment?url="+userList.get(position).getName()));
+                            Uri.parse("https://test.opis.link/payment?url="+userList.get(position).getName()));
             context.startActivity(viewIntent);
         });
         holder.copy.setOnClickListener(view -> {
             ClipboardManager clipboard = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("label", "https://opis.link/payment?url=" +userList.get(position).getName());
+            ClipData clip = ClipData.newPlainText("label", "https://test.opis.link/" +userList.get(position).getName());
             clipboard.setPrimaryClip(clip);
             Toast.makeText(context, "Text Copied",Toast.LENGTH_SHORT).show();
 

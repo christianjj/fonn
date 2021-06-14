@@ -1,11 +1,13 @@
 package com.fonn.link;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -15,20 +17,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.material.snackbar.Snackbar;
+import com.onesignal.OSDeviceState;
 import com.onesignal.OneSignal;
-
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.linphone.core.AccountCreator;
+import org.linphone.core.Core;
+import org.linphone.core.CoreListenerStub;
+import org.linphone.core.ProxyConfig;
+import org.linphone.core.RegistrationState;
+import org.linphone.core.TransportType;
 import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -49,7 +51,11 @@ public class OTPactivity extends AppCompatActivity {
     public TextView countdown, resendotp;
     public String username = null, password = null;
     private static final String FORMAT = "%02d:%02d";
+    private AccountCreator mAccountCreator;
 
+    String mydeviceId;
+
+    @SuppressLint("HardwareIds")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,8 +75,29 @@ public class OTPactivity extends AppCompatActivity {
             username = b.getString("username");
             password = b.getString("password");
         }
-
+        mydeviceId = Settings.Secure.getString(this.getContentResolver(),Settings.Secure.ANDROID_ID);
         setResendotp();
+        mAccountCreator = FonnlinkService.getCore().createAccountCreator(null);
+        //FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+        //  Toast.makeText(mContext, "wew", Toast.LENGTH_SHORT).show();
+        //finish();
+        CoreListenerStub mCoreListener = new CoreListenerStub() {
+            @Override
+            public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
+                if (state == RegistrationState.Ok) {
+
+                    //FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+                    //  Toast.makeText(mContext, "wew", Toast.LENGTH_SHORT).show();
+                    //finish();
+                    FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+
+                } else if (state == RegistrationState.Failed) {
+
+                    FonnlinkService.getCore().clearProxyConfig();
+                    Toast.makeText(getApplicationContext(), "Failure: " + message, Toast.LENGTH_LONG).show();
+                }
+            }
+        };
 
     }
 
@@ -87,10 +114,6 @@ public class OTPactivity extends AppCompatActivity {
         mEt3 = findViewById(R.id.otp_edit_text3);
         mEt4 = findViewById(R.id.otp_edit_text4);
         resendotp = findViewById(R.id.tv_resend);
-
-
-
-
         verify = findViewById(R.id.btn_verify);
         countdown = findViewById(R.id.countdown);
 
@@ -98,14 +121,16 @@ public class OTPactivity extends AppCompatActivity {
         verify.setOnClickListener(view -> {
             String gettext = "" + mEt1.getText().toString() + mEt2.getText().toString() + mEt3.getText().toString() + mEt4.getText().toString();
 
-                if (gettext.equals("1234")){
-                    savepref();
-                    FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
-                }
-                else{
-                    Snackbar.make(verify, "wrong otp", Snackbar.LENGTH_LONG).show();
-                }
-           // checkotp(gettext);
+            checkotp(gettext);
+//                if (gettext.equals("1234")){
+//                    savepref();
+//                    FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+//                }
+//                else{
+//                    Snackbar.make(verify, "wrong otp", Snackbar.LENGTH_LONG).show();
+//                }
+//            configureAccount();
+
         });
         mContext = OTPactivity.this;
 
@@ -183,16 +208,18 @@ public class OTPactivity extends AppCompatActivity {
 
     public void checkotp(String code) {
 
-        Log.i("okhttp", "sending post");
-
-        String url = "https://opis.link/api/check-otp";
+        Log.i("checkokhttp", "sending post");
+        OSDeviceState device = OneSignal.getDeviceState();
+        String url = getString(R.string.server_domain)+"/api/check-otp";
         OkHttpClient client = new OkHttpClient();
         MediaType json = MediaType.parse("application/json;charset=utf-8");
         JSONObject data = new JSONObject();
         try {
             data.put("username", username);
-
+            data.put("player_id", ""+device.getUserId());
+            data.put("device_id", mydeviceId);
             data.put("otp", code);
+            Log.i("checkokhttp", data.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -204,7 +231,7 @@ public class OTPactivity extends AppCompatActivity {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 String mMessage = e.getMessage();
-                Log.i("okhttp", mMessage);
+                Log.i("checkokhttp", mMessage);
             }
 
             @Override
@@ -217,11 +244,27 @@ public class OTPactivity extends AppCompatActivity {
                     responseCode = object.getString("status");
                     responseCode2 = object.getString("description");
                     if (responseCode.equals("SUCCESS")) {
+                        configureAccount();
                         Snackbar.make(verify, responseCode2, Snackbar.LENGTH_LONG).show();
-                        FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
                         savepref();
+//                        HashMap<String,String> hashMap = new HashMap<>();
+//                        hashMap.put("deviceId", mydeviceId);
+//                        FirebaseFirestore.getInstance().collection("Users")
+//                                .document(username).set(hashMap)
+//                                .addOnSuccessListener(aVoid -> {
+//                                    Log.e("firestore","onsuccess:");
+//
+//                                }).addOnFailureListener(new OnFailureListener() {
+//                            @Override
+//                            public void onFailure(@NonNull Exception e) {
+//                                Toast.makeText(mContext, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
+
+                        FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+
                     } else {
-                        Log.i("okhttp", mMessage);
+                        Log.i("checkokhttp", mMessage);
 
                         count += 1;
                         if (count == 3) {
@@ -234,7 +277,7 @@ public class OTPactivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                Log.i("okhttp", mMessage);
+                Log.i("checkokhttp", mMessage);
             }
 
 
@@ -271,7 +314,7 @@ public class OTPactivity extends AppCompatActivity {
 
         Log.i("okhttp", "sending post");
 
-        String url = "https://opis.link/api/resend-otp";
+        String url = getString(R.string.server_domain)+"/api/resend-otp";
         OkHttpClient client = new OkHttpClient();
         MediaType json = MediaType.parse("application/json;charset=utf-8");
         JSONObject data = new JSONObject();
@@ -316,7 +359,7 @@ public class OTPactivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-       // FonnlinkService.getCore().clearProxyConfig();
+       //FonnlinkService.getCore().clearProxyConfig();
         super.onDestroy();
     }
 
@@ -331,4 +374,23 @@ public class OTPactivity extends AppCompatActivity {
     // super.onBackPressed();
         //  disables back button in current screen.
     }
+
+    public void configureAccount() {
+
+        // At least the 3 below values are required
+        mAccountCreator.setUsername(username);
+        // mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
+        mAccountCreator.setDomain("asterisk-prod.sysnetph.com:5091");
+        mAccountCreator.setPassword(password);
+        mAccountCreator.setTransport(TransportType.Tcp);
+
+        // This will automatically create the proxy config and auth info and add them to the Core
+        ProxyConfig cfg = mAccountCreator.createProxyConfig();
+        FonnlinkService.getCore().setStunServer("stun1.l.google.com:19302");
+        FonnlinkService.getInstance().setIceEnabled(true);
+        // Make sure the newly created one is the default
+        FonnlinkService.getCore().setDefaultProxyConfig(cfg);
+
+    }
+
 }

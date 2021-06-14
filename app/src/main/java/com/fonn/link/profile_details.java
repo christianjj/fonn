@@ -4,13 +4,11 @@ public class profile_details {
 
     private String Name;
     private String Balance;
-    private String Number;
     private String Status;
 
-    public profile_details(String name, String balance, String number, String status) {
+    public profile_details(String name, String balance, String status) {
         Name = name;
         Balance = balance;
-        Number = number;
         Status = status;
     }
 
@@ -41,11 +39,5 @@ public class profile_details {
         Status = status;
     }
 
-    public String getNumber() {
-        return Number;
-    }
 
-    public void setNumber(String number) {
-        Number = number;
-    }
 }

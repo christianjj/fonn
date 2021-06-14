@@ -37,6 +37,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.fonn.link.Dashboard.countDownTimer;
 import static com.fonn.link.OTPactivity.MyPREFERENCES;
 import static com.fonn.link.OTPactivity.finishotp;
 import static com.fonn.link.fragments.HomeFragment.Mypref;
@@ -59,7 +60,7 @@ public class LogoutFragment extends Fragment {
     public void sendpost(){
         OSDeviceState device = OneSignal.getDeviceState();
         Log.i("okhttp","sending post");;
-        String url = "https://opis.link/api/logout";
+        String url = getString(R.string.server_domain)+"/api/logout";
         OkHttpClient client = new OkHttpClient();
         MediaType json = MediaType.parse("application/json;charset=utf-8");
         JSONObject data = new JSONObject();
@@ -108,6 +109,9 @@ public class LogoutFragment extends Fragment {
                         SharedPreferences.Editor ceditor = sharedpref.edit();
                         ceditor.putString(callcpuntpref, "0");
                         ceditor.apply();
+                        countDownTimer.cancel();
+
+
                       //  Toast.makeText(getContext(), ""+responseCode2, Toast.LENGTH_SHORT).show();
                     }
                     else {

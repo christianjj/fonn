@@ -49,22 +49,22 @@ public class work extends Worker {
 
 
 
-       // getApplicationContext().startService(
-         //       new Intent().setClass(getApplicationContext(), LinphoneService.class));
+        getApplicationContext().startService(
+                new Intent().setClass(getApplicationContext(), wakeupService.class));
             // And wait for it to be ready, so we can safely use it afterwards
 
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void run() {
-                Intent service = new Intent(mcontext, wakeupService.class);
-                service.setFlags(FLAG_ACTIVITY_NEW_TASK);
-                mcontext.startForegroundService(service);
-
-
-
-            }
-        });
+//        new Handler(Looper.getMainLooper()).post(new Runnable() {
+//            @RequiresApi(api = Build.VERSION_CODES.O)
+//            @Override
+//            public void run() {
+//                Intent service = new Intent(mcontext, wakeupService.class);
+//                service.setFlags(FLAG_ACTIVITY_NEW_TASK);
+//                mcontext.startForegroundService(service);
+//
+//
+//
+//            }
+//        });
 
 
         return Result.success(); //true - success / false - failure
@@ -81,10 +81,9 @@ public class work extends Worker {
     }
 
     public static Constraints setcons(){
-        Constraints constraints = new Constraints.Builder()
+        return new Constraints.Builder()
                 .setRequiresBatteryNotLow(true)
                 .build();
-        return constraints;
     }
 
 

@@ -27,7 +27,7 @@ public class NotificationService implements OSRemoteNotificationReceivedHandler 
         OSNotification notification = notificationReceivedEvent.getNotification();
 
         // Example of modifying the notification's accent color
-       OSMutableNotification mutableNotification = notification.mutableCopy();
+        OSMutableNotification mutableNotification = notification.mutableCopy();
         mutableNotification.setExtender(builder -> builder.setColor(context.getResources().getColor(R.color.white)));
 
         // If complete isn't call within a time period of 25 seconds, OneSignal internal logic will show the original notification
@@ -41,11 +41,12 @@ public class NotificationService implements OSRemoteNotificationReceivedHandler 
 
        // Toast.makeText(context, "test", Toast.LENGTH_SHORT).show();
        // Looper.loop();
-
-
-       work.oneoffRequest();
-        OneSignal.clearOneSignalNotifications();
+        work.oneoffRequest();
+        //OneSignal.clearOneSignalNotifications();
         notificationReceivedEvent.complete(null);
+
+
+
     }
 
 

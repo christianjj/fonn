@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.fonn.link.fragments.HomeFragment;
+import com.fonn.link.interfaces.RegistrationListener;
 import com.fonn.link.interfaces.activityListener;
 
 import org.linphone.core.Address;
@@ -47,6 +48,7 @@ import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.fragments.HomeFragment.Mypref;
 import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
@@ -70,7 +72,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
     private Core mCore;
     public CoreListenerStub mCoreListener;
     NotificationManager notificationManager;
-
+    public RegistrationListener registrationListener;
     public static boolean isReady() {
         return sInstance != null;
     }
@@ -122,9 +124,11 @@ public class FonnlinkService extends Service implements SensorEventListener {
               //  Toast.makeText(FonnlinkService.this, message, Toast.LENGTH_SHORT).show();
                 if (state == Call.State.IncomingReceived) {
                     // For this sample we will automatically answer incoming calls
-                    sendNotification();
-                    getInstance().activityListener.onIncomingActivity();
-                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+
+
+                        sendNotification();
+                        getInstance().activityListener.onIncomingActivity();
+                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
 //                        Intent intent = new Intent(FonnlinkService.this, Dashboard.class);
 //                        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 //                        //  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -133,7 +137,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
 //                                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON +
 //                                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 //                        startActivity(intent);
-                   }
+                        }
 
 
                 } else if (state == Call.State.Connected) {
@@ -159,8 +163,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
                         notificationManager.cancel(10);
                     }
 
-                    stopService(
-                            new Intent().setClass(getApplicationContext(), wakeupService.class));
+//                    stopService(
+//                            new Intent().setClass(getApplicationContext(), wakeupService.class));
 
                     enableProximitySensing(false);
                 }
@@ -171,16 +175,17 @@ public class FonnlinkService extends Service implements SensorEventListener {
             public void onRegistrationStateChanged(Core core, ProxyConfig proxyConfig, RegistrationState state, String s) {
 
                 if (state == RegistrationState.Ok) {
-                    HomeFragment.status.setText(R.string.ready);
+                    getInstance().registrationListener.onRegistrationComplete(1);
                 } else if (state == RegistrationState.Cleared) {
-                    HomeFragment.status.setText(R.string.disconnected);
+                    getInstance().registrationListener.onRegistrationComplete(2);
                 }  else if (state == RegistrationState.Progress) {
-                    HomeFragment.status.setText(R.string.connecting);
+                    getInstance().registrationListener.onRegistrationComplete(3);
+                }
+                else{
+                    mCore.refreshRegisters();
+                    startActivity(getApplicationContext(),LauncherActivity.class);
                 }
             }
-
-
-
 
         };
 
@@ -212,6 +217,25 @@ public class FonnlinkService extends Service implements SensorEventListener {
         configureCore();
 
 
+    }
+
+    public int status(){
+
+
+        String stats = String.valueOf(getCore().getDefaultProxyConfig().getState());
+        if (stats.equals("Ok")){
+
+            return 1;
+        }
+        if (stats.equals("Cleared")){
+
+            return 2;
+        }
+        if (stats.equals("Progress")){
+
+            return 3;
+        }
+        return 3;
     }
 
     /* Proximity sensor stuff */
@@ -251,7 +275,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
         sInstance = this;
 
 
-       // mCore.enterBackground();
+        mCore.enterBackground();
         // Core must be started after being created and configured
         mCore.start();
         // We also MUST call the iterate() method of the Core on a regular basis
@@ -433,8 +457,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
     }
 
     public String getAddressname() {
-        String address = getAddressDisplayName(FonnlinkService.getCore().getCurrentCallRemoteAddress());
-        return address;
+        return getAddressDisplayName(FonnlinkService.getCore().getCurrentCallRemoteAddress());
     }
 
     public void answerCall() {
@@ -482,7 +505,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
             notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             notificationManager.createNotificationChannel(notificationChannel);
         }
-        Intent intent = new Intent(this, LauncherActivity.class);
+        Intent intent = new Intent(this, Dashboard.class);
 //        Intent intentAccept = new Intent(getApplicationContext(), CallReceiver.class);
 //        intentAccept.putExtra("action", "Accept");
 
@@ -517,14 +540,12 @@ public class FonnlinkService extends Service implements SensorEventListener {
     }
 
     public String getProfilename() {
-        String profilename = getAddressDisplayName(FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress());
-        return profilename;
+        return getAddressDisplayName(FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress());
 
     }
 
     public String getProfilenameaddress() {
-        String profileuseraddress = FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress().asStringUriOnly();
-        return profileuseraddress;
+        return FonnlinkService.getCore().getDefaultProxyConfig().getIdentityAddress().asStringUriOnly();
     }
 
 

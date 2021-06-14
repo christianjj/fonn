@@ -39,6 +39,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.fonn.link.Dashboard.countDownTimer;
+
 public class SettingFragments extends Fragment {
     EditText et_oldpass,
              et_retype,

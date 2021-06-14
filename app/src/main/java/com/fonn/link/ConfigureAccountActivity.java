@@ -3,7 +3,10 @@ package com.fonn.link;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.Html;
@@ -30,6 +33,7 @@ import org.linphone.core.AccountCreator;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
+import org.linphone.core.Reason;
 import org.linphone.core.RegistrationState;
 import org.linphone.core.TransportType;
 
@@ -47,12 +51,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.fonn.link.OTPactivity.finish;
+import static com.fonn.link.fragments.HomeFragment.Mypref;
+import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
+import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
+
 public class ConfigureAccountActivity extends Activity {
     private EditText mUsername, mPassword;
     private Button mConnect;
     ProgressDialog pd;
     private AccountCreator mAccountCreator;
-    private CoreListenerStub mCoreListener;
+
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -74,7 +83,7 @@ public class ConfigureAccountActivity extends Activity {
         // Account creator can help you create/config accounts, even not sip.linphone.org ones
         // As we only want to configure an existing account, no need for server URL to make requests
         // to know whether or not account exists, etc...
-        mAccountCreator = FonnlinkService.getCore().createAccountCreator(null);
+       // mAccountCreator = FonnlinkService.getCore().createAccountCreator(null);
 
         mUsername = findViewById(R.id.usernamewww);
         mPassword = findViewById(R.id.password);
@@ -87,7 +96,6 @@ public class ConfigureAccountActivity extends Activity {
                     public void onClick(View v) {
                         if (ch1.isChecked()) {
                             sendpost();
-
                         }
                         else {
                             Snackbar.make(mConnect, "Must have Accept Terms and Condition to continue", Snackbar.LENGTH_LONG).show();
@@ -98,25 +106,7 @@ public class ConfigureAccountActivity extends Activity {
                     }
                 });
 
-        mCoreListener = new CoreListenerStub() {
-            @Override
-            public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
-                if (state == RegistrationState.Ok) {
-                    pd.dismiss();
-                    //finish();
-                    Intent i = new Intent(ConfigureAccountActivity.this, OTPactivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    i.putExtra("username", mUsername.getText().toString());
-                    i.putExtra("password",mPassword.getText().toString());
-                    startActivity(i);
 
-                } else if (state == RegistrationState.Failed) {
-
-                    FonnlinkService.getCore().clearProxyConfig();
-                    Toast.makeText(getApplicationContext(), "Failure: " + message, Toast.LENGTH_LONG).show();
-                }
-            }
-        };
     }
 
     @Override
@@ -128,12 +118,12 @@ public class ConfigureAccountActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        FonnlinkService.getCore().addListener(mCoreListener);
+       // FonnlinkService.getCore().addListener(mCoreListener);
     }
 
     @Override
     protected void onPause() {
-        FonnlinkService.getCore().removeListener(mCoreListener);
+        //FonnlinkService.getCore().removeListener(mCoreListener);
 
         super.onPause();
     }
@@ -143,25 +133,26 @@ public class ConfigureAccountActivity extends Activity {
         super.onDestroy();
     }
 
-    private void configureAccount() {
-
-
-
-
-        // At least the 3 below values are required
-        mAccountCreator.setUsername(mUsername.getText().toString());
-        mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
-        mAccountCreator.setPassword(mPassword.getText().toString());
-        mAccountCreator.setTransport(TransportType.Udp);
-
-        // This will automatically create the proxy config and auth info and add them to the Core
-        ProxyConfig cfg = mAccountCreator.createProxyConfig();
-        FonnlinkService.getCore().setStunServer("stun1.l.google.com:19302");
-        FonnlinkService.getInstance().setIceEnabled(true);
-        // Make sure the newly created one is the default
-        FonnlinkService.getCore().setDefaultProxyConfig(cfg);
-
-    }
+//    private void configureAccount() {
+//
+//
+//
+//
+//        // At least the 3 below values are required
+//        mAccountCreator.setUsername(mUsername.getText().toString());
+//       // mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
+//        mAccountCreator.setDomain("asterisk-prod.sysnetph.com:5091");
+//        mAccountCreator.setPassword(mPassword.getText().toString());
+//        mAccountCreator.setTransport(TransportType.Tcp);
+//
+//        // This will automatically create the proxy config and auth info and add them to the Core
+//        ProxyConfig cfg = mAccountCreator.createProxyConfig();
+//        FonnlinkService.getCore().setStunServer("stun1.l.google.com:19302");
+//        FonnlinkService.getInstance().setIceEnabled(true);
+//        // Make sure the newly created one is the default
+//        FonnlinkService.getCore().setDefaultProxyConfig(cfg);
+//
+//    }
 
 
 
@@ -174,7 +165,7 @@ public class ConfigureAccountActivity extends Activity {
         pd.setMessage("loading");
         pd.setCancelable(false);
         pd.show();
-        String url = "https://opis.link/api/login";
+        String url = getString(R.string.server_domain)+"/api/login";
         OkHttpClient client = new OkHttpClient();
         MediaType json = MediaType.parse("application/json;charset=utf-8");
         JSONObject data = new JSONObject();
@@ -183,7 +174,7 @@ public class ConfigureAccountActivity extends Activity {
             data.put("password", mPassword.getText().toString());
          //   assert device != null;
             assert device != null;
-            data.put("player_id", ""+device.getUserId());
+          //  data.put("player_id", ""+device.getUserId());
             data.put("device_type", "android");
             Log.d("onesignallog",data.toString());
         } catch (JSONException e) {
@@ -203,14 +194,27 @@ public class ConfigureAccountActivity extends Activity {
                 String mMessage = Objects.requireNonNull(response.body()).string();
                 String responseCode = null;
                 String responseCode2 =null;
+                String responseCode3 = null;
                 try {
                     JSONObject object = new JSONObject(mMessage);
                     responseCode = object.getString("status");
                     responseCode2 = object.getString("description");
+                    responseCode3 = object.getString("total_calls");
+
                     if(responseCode.equals("SUCCESS")) {
                         Log.i("okhttp",mMessage);
-                        configureAccount();
+                        //configureAccount();
                         Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
+                        finish();
+                        SharedPreferences sharedpreferences = getContext().getSharedPreferences(Mypref, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putString(callcpuntpref, responseCode3);
+                        editor.apply();
+                        Intent i = new Intent(ConfigureAccountActivity.this, OTPactivity.class);
+                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        i.putExtra("username", mUsername.getText().toString());
+                        i.putExtra("password",mPassword.getText().toString());
+                        startActivity(i);
                         pd.dismiss();
 
                     }

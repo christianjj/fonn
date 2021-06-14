@@ -2,27 +2,38 @@ package com.fonn.link;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
+
 import com.bumptech.glide.Glide;
 import com.fonn.link.fragments.HomeFragment;
+import com.fonn.link.interfaces.RegistrationListener;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.FirebaseApp;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -34,19 +45,19 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.DefaultItemAnimator;
+
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.linphone.core.Address;
-import org.linphone.core.Call;
 import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListener;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
+import org.linphone.core.RegistrationState;
 import org.linphone.core.tools.Log;
 
 import java.io.IOException;
@@ -55,12 +66,16 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -70,11 +85,14 @@ import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.OTPactivity.finishotp;
 
 
-import static com.fonn.link.fragments.HomeFragment.updateLed;
+import static com.fonn.link.fragments.HomeFragment.Mypref;
+import static com.fonn.link.fragments.HomeFragment.ads;
+import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
+import static com.fonn.link.fragments.HomeFragment.urlads;
 import static java.lang.Thread.sleep;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
 
-public class Dashboard extends AppCompatActivity {
+public class Dashboard extends AppCompatActivity implements RegistrationListener {
 
     private AppBarConfiguration mAppBarConfiguration;
     private PowerManager.WakeLock wakeLock;
@@ -84,14 +102,20 @@ public class Dashboard extends AppCompatActivity {
     int signal;
     private Handler mHandler;
     private CoreListener mCoreListener;
-
+    private static final int TIME_INTERVAL = 2000; // # milliseconds, desired time passed between two back presses.
+    private long mBackPressed;
+    private int totalvalue;
+    public static CountDownTimer countDownTimer;
+    @SuppressLint("HardwareIds")
+    String mydeviceId;
+    boolean countdown = false;
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
     }
+    AlertDialog alertDialog;
 
-
-    @SuppressLint("WakelockTimeout")
+    @SuppressLint({"WakelockTimeout", "BatteryLife", "HardwareIds"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +140,8 @@ public class Dashboard extends AppCompatActivity {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+        FonnlinkService.getInstance().registrationListener = this;
+        FirebaseApp.initializeApp(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -134,8 +160,9 @@ public class Dashboard extends AppCompatActivity {
 //        else {
 //            Toast.makeText(this, "push enable", Toast.LENGTH_SHORT).show();
 //        }
-
-
+        mydeviceId = Settings.Secure.getString(this.getContentResolver(),Settings.Secure.ANDROID_ID);
+        startService(
+                new Intent().setClass(getApplicationContext(), wakeupService.class));
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home,R.id.nav_profile, R.id.nav_history, R.id.nav_setting, R.id.navLogout)
                 .setOpenableLayout(drawer)
@@ -167,6 +194,17 @@ public class Dashboard extends AppCompatActivity {
         toolbar.setNavigationIcon(R.drawable.ic_menuicon);
 
 
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent();
+            String packageName = getPackageName();
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + packageName));
+                startActivity(intent);
+            }
+        }
+
     }
 
 
@@ -175,52 +213,83 @@ public class Dashboard extends AppCompatActivity {
 
 
         //  Toast.makeText(this, ""+ping("https://www.google.com/"), Toast.LENGTH_SHORT).show();
-
+        super.onResume();
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
 
+            if (FonnlinkService.isReady()) {
+                getCore().addListener(mCoreListener);
+                //getCore().addListener(FonnlinkService.getInstance().mCoreListener);
+                ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
+                if (proxyConfig != null) {
+                    updateLed(proxyConfig.getState());
+                    if(!countdown) {
+                        getLoginStatus();
+                    }
+                    //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
+                } else {
+                    // No account configured, we display the configuration activity
+                    startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
 
+                }
 
-
-
-        if (FonnlinkService.isReady()) {
-            getCore().addListener(mCoreListener);
-            //getCore().addListener(FonnlinkService.getInstance().mCoreListener);
-            ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
-            if (proxyConfig != null) {
-                updateLed(proxyConfig.getState());
-                //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
-            } else {
-                // No account configured, we display the configuration activity
-                startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
-
-            }
-
-            SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
-            finish = sharedpreferences.getBoolean(finishotp, false);
-            if (!finish) {
-                getCore().clearProxyConfig();
+                SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                finish = sharedpreferences.getBoolean(finishotp, false);
+                if (!finish) {
+                    getCore().clearProxyConfig();
 //            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
-                // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
+                    // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
+                }
+
+                doConnectionScan();
+
+                    if (urlads != null) {
+                        Glide.with(this).load(urlads).into(ads);
+                    } else {
+                        FonnlinkService.getInstance().startActivity(this, LauncherActivity.class);
+                    }
+
+            } else {
+                // If it's not, let's start it
+                startService(
+                        new Intent().setClass(this, FonnlinkService.class));
+                // And wait for it to be ready, so we can safely use it afterwards
+                new ServiceWaitThread().start();
+                Log.d("fonn", "restarting");
             }
-
-            doConnectionScan();
-            Glide.with(this).load(HomeFragment.urlads).into(HomeFragment.ads);
-        } else {
-            // If it's not, let's start it
-            startService(
-                    new Intent().setClass(this, FonnlinkService.class));
-            // And wait for it to be ready, so we can safely use it afterwards
-            new ServiceWaitThread().start();
-            Log.d("fonn","restarting");
-        }
-
-
-
-
-        super.onResume();
     }
 
+    private void getLoginStatus() {
+         countDownTimer = new CountDownTimer(10000,1000) {
+            @Override
+            public void onTick(long l) {
+               // Log.e("tick", "onTick: " +l/1000);
+            }
+
+            @Override
+            public void onFinish() {
+            countDownTimer.start();
+                                    countdown = true;
+                                    checklogin();
+
+                            }
+        }.start();
+    }
+
+    private void showAlert() {
+         alertDialog = new AlertDialog.Builder(Dashboard.this).create();
+        alertDialog.setMessage("You've been logged out");
+        alertDialog.setCancelable(false);
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                (dialog, which) -> {
+
+                    startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
+
+                    dialog.dismiss();
+                });
+        alertDialog.show();
+
+    }
 
 
     @Override
@@ -311,15 +380,19 @@ public class Dashboard extends AppCompatActivity {
 
     @Override
     public void onPause() {
+        super.onPause();
+        // A stopped Core can be started again
+        // To ensure resources are freed, we must ensure it will be garbage collected
+        // Don't forget to free the singleton as well
+        if(countdown) {
+            countDownTimer.cancel();
+            countdown=false;
+        }
 
         getCore().removeListener(mCoreListener);
         if (wakeLock.isHeld())
             wakeLock.release();
 
-
-
-
-        super.onPause();
 
 
     }
@@ -334,7 +407,7 @@ public class Dashboard extends AppCompatActivity {
             HomeFragment.signal.setImageResource(R.drawable.signal_0);
         }
 
-        long newvalue = ping("https://opis.link/");
+        long newvalue = ping(getString(R.string.server_domain));
 
         if (newvalue > 150)
             pingvalue = 1;
@@ -360,6 +433,7 @@ public class Dashboard extends AppCompatActivity {
 
         } else if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
             int networkClass = getNetworkClass(getNetworkType(getContext()));
+
             if (networkClass == 1)
                 signal = 2;
             else if (networkClass == 2)
@@ -369,9 +443,11 @@ public class Dashboard extends AppCompatActivity {
             else if (networkClass == 0)
                 signal = 0;
 
+      
+
         }
 
-        int totalvalue = signal + pingvalue / 2 ;
+        int totalvalue = Math.round(signal + pingvalue) / 2;
 
         if (totalvalue == 1)
             HomeFragment.signal.setImageResource(R.drawable.signal_1);
@@ -383,8 +459,8 @@ public class Dashboard extends AppCompatActivity {
             HomeFragment.signal.setImageResource(R.drawable.signal_4);
         else if (totalvalue == 0)
             HomeFragment.signal.setImageResource(R.drawable.signal_0);
-        else
-            HomeFragment.signal.setImageResource(R.drawable.signal_0);
+
+
 
     }
 
@@ -460,7 +536,7 @@ public class Dashboard extends AppCompatActivity {
                     public void run() {
                         try {
                             //your method here
-                            Log.d("wifi", "10secs");
+                            Log.d("internet", "10secs");
                             ConnectionQuality();
 
                         } catch (Exception e) {
@@ -476,6 +552,17 @@ public class Dashboard extends AppCompatActivity {
     public void onBackPressed() {
         // super.onBackPressed();
         //  disables back button in current screen.
+
+        if (mBackPressed + TIME_INTERVAL > System.currentTimeMillis())
+        {
+            finishAffinity();
+            System.exit(0);
+            //super.onBackPressed();
+            return;
+        }
+        else { Toast.makeText(getBaseContext(), "Tap back button in order to exit", Toast.LENGTH_SHORT).show(); }
+
+        mBackPressed = System.currentTimeMillis();
     }
 
     public long ping (String domain){
@@ -500,13 +587,85 @@ public class Dashboard extends AppCompatActivity {
     }
 
 
-    private void checkingUpdatedAds() {
+
+
+    @Override
+    public void onRegistrationComplete(int type) {
+
+
+        switch (type) {
+            case 1: // This state means you are connected, to can make and receive calls
+                HomeFragment.status.setText(R.string.ready);
+                break;
+
+            case 2: // This one means an error happened, for example a bad password
+                HomeFragment.status.setText(R.string.disconnected);
+                break;
+
+            case 3: // Connection is in progress, next state will be either Ok or Failed
+                HomeFragment.status.setText(R.string.connecting);
+                break;
+        }
+    }
+
+    private class ServiceWaitThread extends Thread {
+
+        public void run() {
+            while (!FonnlinkService.isReady()) {
+                try {
+                    sleep(30);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("waiting thread sleep() has been interrupted");
+                }
+            }
+            // As we're in a thread, we can't do UI stuff in it, must post a runnable in UI thread
+            mHandler.post(
+                    () -> {
+                        ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
+                        if (proxyConfig != null) {
+                            updateLed(proxyConfig.getState());
+                            //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
+                        } else {
+                            // No account configured, we display the configuration activity
+                            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
+
+                        }
+
+                        SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                        finish = sharedpreferences.getBoolean(finishotp, false);
+                        if (!finish) {
+                            getCore().clearProxyConfig();
+//            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
+                            // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
+                        }
+
+
+                    });
+        }
+
+
+
+    }
+    private void updateLed(RegistrationState state) {
+        switch (state) {
+            case Ok: // This state means you are connected, to can make and receive calls & messages
+                HomeFragment.status.setText(R.string.ready);
+                break;
+            case Cleared: // This state is when you disconnected
+                HomeFragment.status.setText(R.string.disconnected);
+                break;
+            case Progress: // Connection is in progress, next state will be either Ok or Failed
+                HomeFragment.status.setText(R.string.connecting);
+                break;
+        }
+    }
+
+    private void checklogin() {
 
         android.util.Log.i("okhttp", "sending post");
 
-        String url = getString(R.string.adsapi);
+        String url = getString(R.string.server_domain)+"/api/check-deviceid/"+ FonnlinkService.getInstance().getProfilename();
         OkHttpClient client = new OkHttpClient();
-
         //  RequestBody body  = RequestBody.create(json,data.toString());
         Request newreq = new Request.Builder().url(url).get().build();
 
@@ -525,58 +684,41 @@ public class Dashboard extends AppCompatActivity {
                 String responseCode = null;
                 try {
                     JSONObject object = new JSONObject(mMessage);
-                    responseCode = object.getString("path");
-                    HomeFragment.urlads = "https://opis.link"+responseCode;
-                    android.util.Log.d("okhttpp","https://opis.link"+responseCode);
-                    // Glide.with(getContext()).load(getInstance().urlads).into(getInstance().ads);
+                    responseCode = object.getString("device_id");
+                    if (!responseCode.equals(mydeviceId)){
+                        Looper.prepare();
+                        showAlert();
+                        getCore().clearProxyConfig();
+                        SharedPreferences sharedpreferences = getContext().getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putBoolean(finishotp, false);
+                        editor.apply();
+                        countDownTimer.cancel();
+                        Looper.loop();
+                        //startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
 
+
+
+//                        SharedPreferences sharedpref = getContext().getSharedPreferences(Mypref, Context.MODE_PRIVATE);
+//                        SharedPreferences.Editor ceditor = sharedpref.edit();
+//                        ceditor.putString(callcpuntpref, "0");
+//                        ceditor.apply();
+                        //countDownTimer.cancel();
+
+                    }
+
+                    android.util.Log.d("okhttpp",responseCode);
                 } catch (JSONException e) {
                     e.printStackTrace();
 
                 }
                 android.util.Log.i("okhttp", mMessage);
+
+
             }
 
         });
 
     }
 
-    private class ServiceWaitThread extends Thread {
-
-        public void run() {
-            while (!FonnlinkService.isReady()) {
-                try {
-                    sleep(30);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("waiting thread sleep() has been interrupted");
-                }
-            }
-            // As we're in a thread, we can't do UI stuff in it, must post a runnable in UI thread
-            mHandler.post(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
-                            if (proxyConfig != null) {
-                                updateLed(proxyConfig.getState());
-                                //OneSignal.setEmail(LinphoneService.getInstance().getProfilename()+"@sysnet.com");
-                            } else {
-                                // No account configured, we display the configuration activity
-                                startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
-
-                            }
-
-                            SharedPreferences sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
-                            finish = sharedpreferences.getBoolean(finishotp, false);
-                            if (!finish) {
-                                getCore().clearProxyConfig();
-//            startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
-                                // Toast.makeText(this, "not finish", Toast.LENGTH_SHORT).show();
-                            }
-
-
-                        }
-                    });
-        }
-    }
 }

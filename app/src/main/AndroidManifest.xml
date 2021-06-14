@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -31,6 +31,7 @@
         <activity
             android:name=".Dashboard"
             android:label="@string/title_activity_dashboard"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Fonnlink.NoActionBar.NoActionBar" />
         <activity android:name=".LauncherActivity">
             <intent-filter>
@@ -39,8 +40,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ConfigureAccountActivity" />
-        <activity android:name=".OTPactivity" />
+        <activity android:name=".ConfigureAccountActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".OTPactivity"
+            android:screenOrientation="portrait"
+            />
 
         <service
             android:name=".FonnlinkService"

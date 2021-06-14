@@ -11,11 +11,11 @@ android {
 
     defaultConfig {
         applicationId "com.fonn.link"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
-
+        versionName "0.3.8"
+        archivesBaseName = "Fonn_v" + versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -46,15 +46,13 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.core:core:1.5.0'
     implementation 'org.mockito:mockito-core:1.9.5:javadoc'
-    implementation project(path: ':linphone-sdk-android-4.4.1')
+    implementation project(path: ':linphone-sdk-android-4.4.2')
 //    implementation 'com.google.firebase:firebase-messaging:21.1.0'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'com.onesignal:OneSignal:4.3.0'
 
-
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     implementation "com.github.bumptech.glide:okhttp3-integration:4.11.0"
-
     implementation 'androidx.navigation:navigation-fragment:2.3.5'
     implementation 'androidx.navigation:navigation-ui:2.3.5'
     implementation 'com.speedchecker:android-sdk:4.2.105-3-demo'
