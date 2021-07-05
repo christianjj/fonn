@@ -120,6 +120,7 @@ public class LauncherActivity extends Activity {
                             onServiceReady();
                         }
                     });
+
         }
     }
 }

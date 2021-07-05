@@ -1,4 +1,4 @@
-package com.fonn.link;
+package com.fonn.link.modal;
 
 public class profile_details {
 

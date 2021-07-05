@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -48,14 +47,9 @@ import androidx.appcompat.widget.Toolbar;
 
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.linphone.core.Address;
-import org.linphone.core.CallParams;
-import org.linphone.core.Core;
 import org.linphone.core.CoreListener;
-import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
 import org.linphone.core.RegistrationState;
 import org.linphone.core.tools.Log;
@@ -64,30 +58,21 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static com.fonn.link.FonnlinkService.getCore;
 import static com.fonn.link.OTPactivity.MyPREFERENCES;
 import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.OTPactivity.finishotp;
 
 
-import static com.fonn.link.fragments.HomeFragment.Mypref;
 import static com.fonn.link.fragments.HomeFragment.ads;
-import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 import static com.fonn.link.fragments.HomeFragment.urlads;
 import static java.lang.Thread.sleep;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
@@ -120,7 +105,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_dashboard);
         checkAndRequestCallPermissions();
 
@@ -164,7 +149,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
         startService(
                 new Intent().setClass(getApplicationContext(), wakeupService.class));
 
-        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home,R.id.nav_profile, R.id.nav_history, R.id.nav_setting, R.id.navLogout)
+        mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_home,R.id.nav_profile, R.id.nav_history, R.id.nav_setting, R.id.navLogout, R.id.nav_uploadimage)
                 .setOpenableLayout(drawer)
                 .build();
 
@@ -183,6 +168,9 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
                     toolbar.setVisibility(View.GONE);
                 }
                 if(destination.getId() == R.id.nav_setting){
+                    toolbar.setVisibility(View.GONE);
+                }
+                if(destination.getId() == R.id.nav_uploadimage){
                     toolbar.setVisibility(View.GONE);
                 }
 
@@ -263,7 +251,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
          countDownTimer = new CountDownTimer(10000,1000) {
             @Override
             public void onTick(long l) {
-               // Log.e("tick", "onTick: " +l/1000);
+                //Log.e("tick", "onTick: " +l/1000);
             }
 
             @Override
@@ -384,7 +372,8 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
         // A stopped Core can be started again
         // To ensure resources are freed, we must ensure it will be garbage collected
         // Don't forget to free the singleton as well
-        if(countdown) {
+        ProxyConfig proxyConfig = getCore().getDefaultProxyConfig();
+        if (proxyConfig != null) {
             countDownTimer.cancel();
             countdown=false;
         }
@@ -539,7 +528,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
                             Log.d("internet", "10secs");
                             ConnectionQuality();
 
-                        } catch (Exception e) {
+                        } catch (Exception ignored) {
                         }
                     }
                 });

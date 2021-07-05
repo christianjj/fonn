@@ -5,12 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.fonn.link.fragments.HomeFragment;
-
-import org.linphone.core.Call;
-import org.linphone.core.CallParams;
-import org.linphone.core.Core;
-
 public class CallReceiver extends BroadcastReceiver {
     NotificationManager notificationManager;
     Context c;

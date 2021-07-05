@@ -2,21 +2,14 @@ package com.fonn.link;
 
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.onesignal.OSNotification;
 import com.onesignal.OSMutableNotification;
 import com.onesignal.OSNotificationReceivedEvent;
-import com.onesignal.OneSignal;
 import com.onesignal.OneSignal.OSRemoteNotificationReceivedHandler;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.linphone.core.Call;
-import org.linphone.core.Core;
 
 
 public class NotificationService implements OSRemoteNotificationReceivedHandler {

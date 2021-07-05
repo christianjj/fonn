@@ -1,6 +1,5 @@
 package com.fonn.link.fragments;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -18,7 +16,6 @@ import com.fonn.link.ConfigureAccountActivity;
 import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
 import com.fonn.link.R;
-import com.google.android.material.snackbar.Snackbar;
 import com.onesignal.OSDeviceState;
 import com.onesignal.OneSignal;
 

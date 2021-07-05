@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 
 import androidx.annotation.NonNull;
@@ -16,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,9 +23,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
-import com.fonn.link.HistoryRecycleAdapter;
+import com.fonn.link.adapters.HistoryRecycleAdapter;
 import com.fonn.link.R;
-import com.fonn.link.history_details;
+import com.fonn.link.modal.history_details;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,8 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.fonn.link.Dashboard.countDownTimer;
-
 public class HistoryFragments extends Fragment {
 
     Toolbar toolbar;
@@ -46,12 +42,9 @@ public class HistoryFragments extends Fragment {
     private HistoryRecycleAdapter historyRecycleAdapter;
     ArrayList<history_details> historyDetails = new ArrayList<>();
     private RecyclerView recyclerView;
-    private RequestQueue requestQueue;
     String responseCode = null;
     public int intstart = 0 ,intsize = 10;
     private Parcelable recyclerViewState;
-    //for recycleview
-    private NestedScrollView nestedSV;
     private ProgressBar loadingPB;
     boolean loading = false;
 
@@ -64,7 +57,8 @@ public class HistoryFragments extends Fragment {
         ((AppCompatActivity)getActivity()).setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.back_button);
         toolbar.setTitle("History");
-        nestedSV = root.findViewById(R.id.scroll_view);
+        //for recycleview
+        NestedScrollView nestedSV = root.findViewById(R.id.scroll_view);
         historyDetails = new ArrayList<>();
         toolbar.setNavigationOnClickListener(v -> FonnlinkService.getInstance().startActivity(getContext(), Dashboard.class));
         recyclerView = root.findViewById(R.id.recyclerView2);
@@ -127,7 +121,7 @@ public class HistoryFragments extends Fragment {
             if (responseCode != null) {
                 jsonBody.put("requestDatetime", Date);
             }
-            requestQueue = Volley.newRequestQueue(getContext());
+            RequestQueue requestQueue = Volley.newRequestQueue(getContext());
             //jsonBody.put("username", "jaybee");
             JsonObjectRequest request = new JsonObjectRequest(com.android.volley.Request.Method.POST, urllink, jsonBody, response -> {
 
@@ -153,7 +147,7 @@ public class HistoryFragments extends Fragment {
 
                     }
                     //responseCode = objects.getString("requestDatetime");
-                    Log.d("volley", "" + object.getString("date"));
+                   // Log.d("volley", "" + objects.getString("requestDatetime"));
                     //historyRecycleAdapter = new HistoryRecycleAdapter(getContext(), historyDetails);
                     loadingPB.setVisibility(View.GONE);
                     historyRecycleAdapter = new HistoryRecycleAdapter(getContext(), historyDetails);

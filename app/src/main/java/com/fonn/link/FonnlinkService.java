@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -48,7 +49,6 @@ import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.fragments.HomeFragment.Mypref;
 import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
@@ -127,6 +127,8 @@ public class FonnlinkService extends Service implements SensorEventListener {
 
 
                         sendNotification();
+                      //  Log.d("linphonelocation", call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
+
                         getInstance().activityListener.onIncomingActivity();
                         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
 //                        Intent intent = new Intent(FonnlinkService.this, Dashboard.class);
@@ -138,6 +140,9 @@ public class FonnlinkService extends Service implements SensorEventListener {
 //                                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
 //                        startActivity(intent);
                         }
+
+
+                   // call.getCurrentParams().getCustomHeader("X-PH-Fromnumber")
 
 
                 } else if (state == Call.State.Connected) {

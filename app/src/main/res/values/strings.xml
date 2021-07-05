@@ -43,6 +43,9 @@
     <string name="error">Error</string>
     <string name="connecting">Connecting</string>
     <string name="adsapi">https://opis.link/api/ads</string>
-    <string name="version">v.0.3.8</string>
+    <string name="version">v.0.4.0</string>
     <string name="server_domain">https://test.opis.link</string>
+    <string name="dateupload">"Date uploaded: "</string>
+    <string name="location">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus feugiat.</string>
+    <string name="uploadimage">Upload Image</string>
 </resources>

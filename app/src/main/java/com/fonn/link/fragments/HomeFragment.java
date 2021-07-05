@@ -1,38 +1,24 @@
 package com.fonn.link.fragments;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
-
-import com.ebanx.swipebtn.OnActiveListener;
-import com.ebanx.swipebtn.OnStateChangeListener;
 import com.ebanx.swipebtn.SwipeButton;
-import com.fonn.link.ConfigureAccountActivity;
-import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
 import com.fonn.link.R;
 import com.fonn.link.interfaces.activityListener;
@@ -40,9 +26,7 @@ import com.onesignal.OSDeviceState;
 import com.onesignal.OneSignal;
 
 
-import org.linphone.core.Address;
 import org.linphone.core.Call;
-import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.ProxyConfig;
@@ -50,12 +34,10 @@ import org.linphone.core.Reason;
 import org.linphone.core.RegistrationState;
 
 
-import java.text.BreakIterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import static com.fonn.link.FonnlinkService.getCore;
-import static com.fonn.link.OTPactivity.MyPREFERENCES;
 
 public class HomeFragment extends Fragment implements activityListener {
 
@@ -166,6 +148,16 @@ public class HomeFragment extends Fragment implements activityListener {
 
         //Connection listener
         mCoreListener = new CoreListenerStub() {
+            @Override
+            public void onCallStateChanged(Core lc, Call call, Call.State cstate, String message) {
+                super.onCallStateChanged(lc, call, cstate, message);
+
+                if (cstate == Call.State.IncomingReceived) {
+                  //  IncomingcallerUsername.setText("wew");
+                    IncomingcallerUsername.setText(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
+                }
+            }
+
             @Override
             public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
                 updateLed(state);
@@ -299,8 +291,9 @@ public class HomeFragment extends Fragment implements activityListener {
         //  FonnlinkService.getInstance().sendNotification();
         defaultLayout.setVisibility(View.GONE);
         incomingLayout.setVisibility(View.VISIBLE);
-        String displayName = FonnlinkService.getInstance().getProfilename();
-        IncomingcallerUsername.setText(displayName);
+        //String displayName = FonnlinkService.getInstance().getProfilename();
+        //Call call = FonnlinkService.getCall();
+
     }
 
     public void defauiltUi() {

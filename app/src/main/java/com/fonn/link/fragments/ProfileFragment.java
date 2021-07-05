@@ -22,8 +22,8 @@ import com.android.volley.toolbox.Volley;
 import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
 import com.fonn.link.R;
-import com.fonn.link.profile_details;
-import com.fonn.link.ProfileRecycleAdapter;
+import com.fonn.link.modal.profile_details;
+import com.fonn.link.adapters.ProfileRecycleAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,8 +32,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.fonn.link.Dashboard.countDownTimer;
 
 public class ProfileFragment extends Fragment implements ProfileRecycleAdapter.mOnClickListener {
 
@@ -45,7 +43,6 @@ public class ProfileFragment extends Fragment implements ProfileRecycleAdapter.m
     private ProfileRecycleAdapter profileRecycleAdapter;
     ArrayList<profile_details> userList;
     private RecyclerView recyclerView;
-    private RequestQueue requestQueue;
 
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -64,18 +61,18 @@ public class ProfileFragment extends Fragment implements ProfileRecycleAdapter.m
         recyclerView = root.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         userList = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(getContext());
+        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
         parseJson();
         tv_displayname = root.findViewById(R.id.usernamewww);
         tv_displayname.setText(FonnlinkService.getInstance().getProfilename());
-        tv_addnew = root.findViewById(R.id.addnew);
-        tv_addnew.setClickable(true);
-        tv_addnew.setOnClickListener(view -> {
+
+       // tv_addnew.setClickable(true);
+     //  tv_addnew.setOnClickListener(view -> {
            // Toast.makeText(getContext(), "test", Toast.LENGTH_SHORT).show();
             //requestapi();
 
           //  throw new RuntimeException();
-        });
+       // });
 
 
 

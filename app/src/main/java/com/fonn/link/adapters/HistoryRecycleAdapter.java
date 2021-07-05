@@ -1,4 +1,4 @@
-package com.fonn.link;
+package com.fonn.link.adapters;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -11,6 +11,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.fonn.link.R;
+import com.fonn.link.modal.history_details;
 
 import java.util.ArrayList;
 

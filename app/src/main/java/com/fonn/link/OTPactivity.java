@@ -1,7 +1,6 @@
 package com.fonn.link;
 
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -39,6 +38,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static com.fonn.link.FonnlinkService.getCore;
+
 public class OTPactivity extends AppCompatActivity {
     private EditText mEt1, mEt2, mEt3, mEt4;
     private Context mContext;
@@ -52,7 +53,7 @@ public class OTPactivity extends AppCompatActivity {
     public String username = null, password = null;
     private static final String FORMAT = "%02d:%02d";
     private AccountCreator mAccountCreator;
-
+    private CoreListenerStub mCoreListener;
     String mydeviceId;
 
     @SuppressLint("HardwareIds")
@@ -77,11 +78,11 @@ public class OTPactivity extends AppCompatActivity {
         }
         mydeviceId = Settings.Secure.getString(this.getContentResolver(),Settings.Secure.ANDROID_ID);
         setResendotp();
-        mAccountCreator = FonnlinkService.getCore().createAccountCreator(null);
+        mAccountCreator = getCore().createAccountCreator(null);
         //FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
         //  Toast.makeText(mContext, "wew", Toast.LENGTH_SHORT).show();
         //finish();
-        CoreListenerStub mCoreListener = new CoreListenerStub() {
+         mCoreListener = new CoreListenerStub() {
             @Override
             public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
                 if (state == RegistrationState.Ok) {
@@ -90,10 +91,11 @@ public class OTPactivity extends AppCompatActivity {
                     //  Toast.makeText(mContext, "wew", Toast.LENGTH_SHORT).show();
                     //finish();
                     FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+                    savepref();
 
                 } else if (state == RegistrationState.Failed) {
 
-                    FonnlinkService.getCore().clearProxyConfig();
+                    getCore().clearProxyConfig();
                     Toast.makeText(getApplicationContext(), "Failure: " + message, Toast.LENGTH_LONG).show();
                 }
             }
@@ -105,7 +107,7 @@ public class OTPactivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadpref();
-
+        getCore().addListener(mCoreListener);
     }
 
     private void initialize() {
@@ -246,22 +248,10 @@ public class OTPactivity extends AppCompatActivity {
                     if (responseCode.equals("SUCCESS")) {
                         configureAccount();
                         Snackbar.make(verify, responseCode2, Snackbar.LENGTH_LONG).show();
-                        savepref();
-//                        HashMap<String,String> hashMap = new HashMap<>();
-//                        hashMap.put("deviceId", mydeviceId);
-//                        FirebaseFirestore.getInstance().collection("Users")
-//                                .document(username).set(hashMap)
-//                                .addOnSuccessListener(aVoid -> {
-//                                    Log.e("firestore","onsuccess:");
-//
-//                                }).addOnFailureListener(new OnFailureListener() {
-//                            @Override
-//                            public void onFailure(@NonNull Exception e) {
-//                                Toast.makeText(mContext, ""+e.getMessage(), Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
 
-                        FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
+
+
+                        //FonnlinkService.getInstance().startActivity(getApplicationContext(), Dashboard.class);
 
                     } else {
                         Log.i("checkokhttp", mMessage);
@@ -269,7 +259,7 @@ public class OTPactivity extends AppCompatActivity {
                         count += 1;
                         if (count == 3) {
                             finish();
-                            FonnlinkService.getCore().clearProxyConfig();
+                            getCore().clearProxyConfig();
                         }
 
                         Snackbar.make(verify, responseCode2, Snackbar.LENGTH_LONG).show();
@@ -386,10 +376,10 @@ public class OTPactivity extends AppCompatActivity {
 
         // This will automatically create the proxy config and auth info and add them to the Core
         ProxyConfig cfg = mAccountCreator.createProxyConfig();
-        FonnlinkService.getCore().setStunServer("stun1.l.google.com:19302");
+        getCore().setStunServer("stun1.l.google.com:19302");
         FonnlinkService.getInstance().setIceEnabled(true);
         // Make sure the newly created one is the default
-        FonnlinkService.getCore().setDefaultProxyConfig(cfg);
+        getCore().setDefaultProxyConfig(cfg);
 
     }
 

@@ -18,6 +18,11 @@
             android:icon="@drawable/design_v1history_icon_small"/>
 
         <item
+            android:id="@+id/nav_uploadimage"
+            android:title="@string/uploadimage"
+            android:icon="@drawable/image_icon_small"/>
+
+        <item
             android:id="@+id/nav_setting"
             android:title="@string/setting"
             android:icon="@drawable/design_v1settings_icon_small"/>

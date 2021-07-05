@@ -6,7 +6,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.text.Html;
@@ -16,9 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -30,17 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.linphone.core.AccountCreator;
-import org.linphone.core.Core;
-import org.linphone.core.CoreListenerStub;
-import org.linphone.core.ProxyConfig;
-import org.linphone.core.Reason;
-import org.linphone.core.RegistrationState;
-import org.linphone.core.TransportType;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Objects;
 
 import okhttp3.Call;
@@ -51,7 +39,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import static com.fonn.link.OTPactivity.finish;
 import static com.fonn.link.fragments.HomeFragment.Mypref;
 import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 import static org.linphone.mediastream.MediastreamerAndroidContext.getContext;
@@ -199,9 +186,10 @@ public class ConfigureAccountActivity extends Activity {
                     JSONObject object = new JSONObject(mMessage);
                     responseCode = object.getString("status");
                     responseCode2 = object.getString("description");
-                    responseCode3 = object.getString("total_calls");
+
 
                     if(responseCode.equals("SUCCESS")) {
+                        responseCode3 = object.getString("total_calls");
                         Log.i("okhttp",mMessage);
                         //configureAccount();
                         Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
@@ -219,7 +207,6 @@ public class ConfigureAccountActivity extends Activity {
 
                     }
                     else {
-
                         Snackbar.make(mConnect, responseCode2, Snackbar.LENGTH_LONG).show();
                         pd.dismiss();
                     }

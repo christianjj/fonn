@@ -3,14 +3,8 @@ package com.fonn.link;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.work.Constraints;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -18,13 +12,9 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import org.linphone.core.AccountCreator;
-import org.linphone.core.Call;
-import org.linphone.core.Core;
 import org.linphone.core.ProxyConfig;
 
 import java.util.concurrent.TimeUnit;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class work extends Worker {
 

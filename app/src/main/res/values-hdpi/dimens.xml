@@ -17,6 +17,8 @@
     <dimen name="margin_bottom_call">40dp</dimen>
     <dimen name="fourteensp">12sp</dimen>
     <dimen name="tv_profile">20sp</dimen>
+    <dimen name="tv_history">10sp</dimen>
+    <dimen name="tv_image">8sp</dimen>
     <dimen name="tv_profile_list">16sp</dimen>
 
 </resources>

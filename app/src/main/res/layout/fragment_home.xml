@@ -194,9 +194,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="80dp"
                         android:gravity="center"
-                        android:text="username"
+                        android:text="@string/location"
                         android:textColor="@color/black"
-                        android:textSize="@dimen/tv_username"
+                        android:textSize="@dimen/defaulttextview"
                         android:textStyle="bold" />
 
                     <LinearLayout

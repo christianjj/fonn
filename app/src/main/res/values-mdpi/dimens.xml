@@ -9,4 +9,6 @@
     <dimen name="fourteensp">10sp</dimen>
     <dimen name="tv_profile">15sp</dimen>
     <dimen name="tv_profile_list">12sp</dimen>
+    <dimen name="tv_history">8sp</dimen>
+    <dimen name="tv_image">6sp</dimen>
 </resources>

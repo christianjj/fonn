@@ -1,4 +1,4 @@
-package com.fonn.link;
+package com.fonn.link.adapters;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -15,6 +15,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.fonn.link.R;
+import com.fonn.link.modal.profile_details;
 
 import java.util.ArrayList;
 
@@ -97,5 +100,6 @@ public class ProfileRecycleAdapter extends RecyclerView.Adapter<ProfileRecycleAd
 
     public interface mOnClickListener{
         void mOnClickListener(int position);
+
     }
 }
