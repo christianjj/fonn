@@ -127,9 +127,10 @@ public class FonnlinkService extends Service implements SensorEventListener {
 
 
                         sendNotification();
-                      //  Log.d("linphonelocation", call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
+                        Log.d("linphonelocation", call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
 
-                        getInstance().activityListener.onIncomingActivity();
+                        getInstance().activityListener.onIncomingActivity(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
+
                         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
 //                        Intent intent = new Intent(FonnlinkService.this, Dashboard.class);
 //                        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -151,7 +152,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
                     enableProximitySensing(true);
                     willcount = true;
                     notificationManager.cancel(10);
-                    getInstance().activityListener.onCallActivity();
+                    getInstance().activityListener.onCallActivity(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
 
                 } else if ((state == Call.State.End) || (state == Call.State.Released)) {
                     notificationManager.cancel(10);
@@ -464,6 +465,7 @@ public class FonnlinkService extends Service implements SensorEventListener {
     public String getAddressname() {
         return getAddressDisplayName(FonnlinkService.getCore().getCurrentCallRemoteAddress());
     }
+
 
     public void answerCall() {
 

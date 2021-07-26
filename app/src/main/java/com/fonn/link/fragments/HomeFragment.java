@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -44,10 +45,10 @@ public class HomeFragment extends Fragment implements activityListener {
 
     CoreListenerStub mCoreListener;
     private TextView
-            IncomingcallerUsername,
             CurrentcallerUsername,
             timertext,
             textcallstatus ;
+    public static TextView IncomingcallerUsername;
 
     @SuppressLint("StaticFieldLeak")
     public static TextView status;
@@ -148,15 +149,7 @@ public class HomeFragment extends Fragment implements activityListener {
 
         //Connection listener
         mCoreListener = new CoreListenerStub() {
-            @Override
-            public void onCallStateChanged(Core lc, Call call, Call.State cstate, String message) {
-                super.onCallStateChanged(lc, call, cstate, message);
 
-                if (cstate == Call.State.IncomingReceived) {
-                  //  IncomingcallerUsername.setText("wew");
-                    IncomingcallerUsername.setText(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
-                }
-            }
 
             @Override
             public void onRegistrationStateChanged(Core core, ProxyConfig cfg, RegistrationState state, String message) {
@@ -176,7 +169,7 @@ public class HomeFragment extends Fragment implements activityListener {
     @Override
     public void onResume() {
 
-        //getCore().addListener(mCoreListener);
+       // getCore().addListener(mCoreListener);
         //progressBar.setVisibility(View.VISIBLE);
         // Manually update the state, in case it has been registered before
         // we add a chance to register the above listener
@@ -291,6 +284,7 @@ public class HomeFragment extends Fragment implements activityListener {
         //  FonnlinkService.getInstance().sendNotification();
         defaultLayout.setVisibility(View.GONE);
         incomingLayout.setVisibility(View.VISIBLE);
+
         //String displayName = FonnlinkService.getInstance().getProfilename();
         //Call call = FonnlinkService.getCall();
 
@@ -304,7 +298,6 @@ public class HomeFragment extends Fragment implements activityListener {
 
     public void callUi() {
         textcallstatus.setText(R.string.connected);
-
         defaultLayout.setVisibility(View.GONE);
         incomingLayout.setVisibility(View.GONE);
         callActivity.setVisibility(View.VISIBLE);
@@ -320,7 +313,7 @@ public class HomeFragment extends Fragment implements activityListener {
 
         }
         String displayName = FonnlinkService.getInstance().getAddressname();
-        CurrentcallerUsername.setText(displayName);
+       // CurrentcallerUsername.setText(displayName);
 
     }
     private void startTimer()
@@ -409,30 +402,37 @@ public class HomeFragment extends Fragment implements activityListener {
         if (call != null) {
             if (!oncall) {
                 incomingUi();
+                IncomingcallerUsername.setText(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
             }
             else {
-                callUi();
-
+                textcallstatus.setText(R.string.connected);
+                defaultLayout.setVisibility(View.GONE);
+                incomingLayout.setVisibility(View.GONE);
+                callActivity.setVisibility(View.VISIBLE);
+                CurrentcallerUsername.setText(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
             }
 
-            String displayName = FonnlinkService.getInstance().getAddressname();
-            CurrentcallerUsername.setText(displayName);
+           // String displayName = FonnlinkService.getInstance().getAddressname();
+          //  CurrentcallerUsername.setText(displayName);
+            CurrentcallerUsername.setText(call.getRemoteParams().getCustomHeader("X-FonnLink-Loc"));
         }
     }
 
     @Override
-    public void onCallActivity() {
+    public void onCallActivity(String location) {
         callUi();
         oncall = true;
+        CurrentcallerUsername.setText(location);
         //  willcount = true;
     }
 
     @Override
-    public void onIncomingActivity() {
+    public void onIncomingActivity(String location) {
         incomingUi();
-
+        IncomingcallerUsername.setText(location);
 
     }
+
 
     @Override
     public void onEndCall() {

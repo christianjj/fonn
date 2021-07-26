@@ -4,7 +4,9 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -31,6 +33,11 @@ import com.bumptech.glide.Glide;
 import com.fonn.link.fragments.HomeFragment;
 import com.fonn.link.interfaces.RegistrationListener;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.model.UpdateAvailability;
+import com.google.android.play.core.tasks.Task;
 import com.google.firebase.FirebaseApp;
 
 import androidx.annotation.NonNull;
@@ -200,11 +207,10 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
     public void onResume() {
 
 
-        //  Toast.makeText(this, ""+ping("https://www.google.com/"), Toast.LENGTH_SHORT).show();
-        super.onResume();
-        // Manually update the state, in case it has been registered before
-        // we add a chance to register the above listener
 
+        super.onResume();
+
+        UpdateApp();
             if (FonnlinkService.isReady()) {
                 getCore().addListener(mCoreListener);
                 //getCore().addListener(FonnlinkService.getInstance().mCoreListener);
@@ -259,6 +265,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
             countDownTimer.start();
                                     countdown = true;
                                     checklogin();
+                                   // ConnectionQuality();
 
                             }
         }.start();
@@ -390,6 +397,8 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
 
 
     public void ConnectionQuality() {
+
+
         HomeFragment.signal.setVisibility(View.VISIBLE);
         NetworkInfo info = getInfo(getContext());
         if (info == null || !info.isConnected()) {
@@ -663,7 +672,7 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
             @Override
             public void onFailure(@NotNull okhttp3.Call call, @NotNull IOException e) {
                 String mMessage = e.getMessage();
-                android.util.Log.i("okhttp", mMessage);
+           //     android.util.Log.i("okhttp", mMessage);
 
             }
 
@@ -696,18 +705,55 @@ public class Dashboard extends AppCompatActivity implements RegistrationListener
 
                     }
 
-                    android.util.Log.d("okhttpp",responseCode);
+                   // android.util.Log.d("okhttpp",responseCode);
                 } catch (JSONException e) {
                     e.printStackTrace();
 
                 }
-                android.util.Log.i("okhttp", mMessage);
+             //   android.util.Log.i("okhttp", mMessage);
 
 
             }
 
         });
 
+    }
+
+    public void UpdateApp(){
+        AppUpdateManager appUpdateManager = AppUpdateManagerFactory.create(this);
+        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
+        // Checks that the platform will allow the specified type of update.
+        appUpdateInfoTask.addOnSuccessListener(result -> {
+
+            if (result.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+//                requestUpdate(result);
+           //     android.view.ContextThemeWrapper ctw = new android.view.ContextThemeWrapper(this,R.style.Theme_AlertDialog);
+                final android.app.AlertDialog.Builder alertDialogBuilder = new android.app.AlertDialog.Builder(this);
+                alertDialogBuilder.setTitle("Update Fonn Link");
+                alertDialogBuilder.setCancelable(false);
+                alertDialogBuilder.setIcon(R.mipmap.fonnicon);
+                alertDialogBuilder.setMessage("Fonn Link recommends that you update to the latest version for a seamless & enhanced performance of the app.");
+                alertDialogBuilder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        try{
+                            startActivity(new Intent("android.intent.action.VIEW", Uri.parse("market://details?id="+getPackageName())));
+                        }
+                        catch (ActivityNotFoundException e){
+                            startActivity(new Intent("android.intent.action.VIEW", Uri.parse("https://play.google.com/store/apps/details?id="+getPackageName())));
+                        }
+                    }
+                });
+                alertDialogBuilder.setNegativeButton("No Thanks",new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                });
+                alertDialogBuilder.show();
+
+            } else {
+
+            }
+        });
     }
 
 }

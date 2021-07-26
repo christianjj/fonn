@@ -120,26 +120,7 @@ public class ConfigureAccountActivity extends Activity {
         super.onDestroy();
     }
 
-//    private void configureAccount() {
-//
-//
-//
-//
-//        // At least the 3 below values are required
-//        mAccountCreator.setUsername(mUsername.getText().toString());
-//       // mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
-//        mAccountCreator.setDomain("asterisk-prod.sysnetph.com:5091");
-//        mAccountCreator.setPassword(mPassword.getText().toString());
-//        mAccountCreator.setTransport(TransportType.Tcp);
-//
-//        // This will automatically create the proxy config and auth info and add them to the Core
-//        ProxyConfig cfg = mAccountCreator.createProxyConfig();
-//        FonnlinkService.getCore().setStunServer("stun1.l.google.com:19302");
-//        FonnlinkService.getInstance().setIceEnabled(true);
-//        // Make sure the newly created one is the default
-//        FonnlinkService.getCore().setDefaultProxyConfig(cfg);
-//
-//    }
+
 
 
 

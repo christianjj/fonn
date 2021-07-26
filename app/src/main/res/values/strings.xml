@@ -43,7 +43,7 @@
     <string name="error">Error</string>
     <string name="connecting">Connecting</string>
     <string name="adsapi">https://opis.link/api/ads</string>
-    <string name="version">v.0.4.0</string>
+    <string name="version">v.0.4.3</string>
     <string name="server_domain">https://test.opis.link</string>
     <string name="dateupload">"Date uploaded: "</string>
     <string name="location">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus feugiat.</string>

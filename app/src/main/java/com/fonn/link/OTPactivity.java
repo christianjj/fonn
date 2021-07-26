@@ -370,7 +370,7 @@ public class OTPactivity extends AppCompatActivity {
         // At least the 3 below values are required
         mAccountCreator.setUsername(username);
         // mAccountCreator.setDomain("asteriskcloudworks.sysnetph.com:5090");
-        mAccountCreator.setDomain("asterisk-prod.sysnetph.com:5091");
+            mAccountCreator.setDomain("asterisk-prod.sysnetph.com:5091");
         mAccountCreator.setPassword(password);
         mAccountCreator.setTransport(TransportType.Tcp);
 

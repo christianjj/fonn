@@ -194,8 +194,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="80dp"
                         android:gravity="center"
-                        android:text="@string/location"
-                        android:textColor="@color/black"
+                        android:text="No Location Found"
                         android:textSize="@dimen/defaulttextview"
                         android:textStyle="bold" />
 
@@ -288,7 +287,6 @@
                         android:layout_marginBottom="@dimen/margin_bottom_call"
                         android:gravity="center"
                         android:text="username"
-                        android:textColor="@color/black"
                         android:textSize="@dimen/tv_username"
                         android:textStyle="bold" />
 

@@ -4,7 +4,9 @@ package com.fonn.link.fragments;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
@@ -29,6 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,6 +43,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.fonn.link.ConfigureAccountActivity;
 import com.fonn.link.Dashboard;
 import com.fonn.link.FonnlinkService;
 
@@ -71,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -80,6 +85,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import static com.fonn.link.Dashboard.countDownTimer;
+import static com.fonn.link.OTPactivity.MyPREFERENCES;
+import static com.fonn.link.OTPactivity.finishotp;
+import static com.fonn.link.fragments.HomeFragment.Mypref;
+import static com.fonn.link.fragments.HomeFragment.callcpuntpref;
 
 public class SettingFragments extends Fragment {
     EditText et_oldpass,
@@ -132,16 +143,26 @@ public class SettingFragments extends Fragment {
             }
         });
 
-        bt_changepass.setOnClickListener(view -> changepass());
+        bt_changepass.setOnClickListener(view ->
+
+               changepass()
+              //  test()
+        //throw new RuntimeException("Test Crash"); // Force a crash
+        );
 
 
 
         return root;
     }
 
+    public void test(){
+        throw new RuntimeException("Test Crash"); // Force a crash
+    }
 
 
     private void changepass() {
+
+
         if (et_newpss.getText().toString().isEmpty()){
             et_newpss.setError("invalid input");
             return;}
@@ -155,7 +176,7 @@ public class SettingFragments extends Fragment {
 
         } else {
             Log.i("okhttp", "sending post");
-            String url = "https://opis.link/api/changepassword";
+            String url = getString(R.string.server_domain) +"/api/changepassword";
             OkHttpClient client = new OkHttpClient();
             MediaType json = MediaType.parse("application/json;charset=utf-8");
             JSONObject data = new JSONObject();
@@ -188,6 +209,8 @@ public class SettingFragments extends Fragment {
                         if (responseCode.equals("SUCCESS")) {
                             Log.i("okhttp", mMessage);
                             Snackbar.make(bt_changepass, responseCode2, Snackbar.LENGTH_LONG).show();
+                            sendpost();
+
                         } else {
                             Snackbar.make(bt_changepass, responseCode2, Snackbar.LENGTH_LONG).show();
                         }
@@ -206,7 +229,75 @@ public class SettingFragments extends Fragment {
 
 
 
+    public void sendpost(){
+        OSDeviceState device = OneSignal.getDeviceState();
+        Log.i("okhttp","sending post");;
+        String url = getString(R.string.server_domain)+"/api/logout";
+        OkHttpClient client = new OkHttpClient();
+        MediaType json = MediaType.parse("application/json;charset=utf-8");
+        JSONObject data = new JSONObject();
+        try {
+            String s = FonnlinkService.getInstance().getAddressname();
+            data.put("username", FonnlinkService.getInstance().getProfilename());
+            data.put("player_id", device.getUserId());
+            //   assert device != null;
+            Log.d("onesignallog",data.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
+//        Request.Builder builder = new Request.Builder()
+//                .url(url)
+//                .delete(RequestBody.create(
+//                        (MediaType.parse("application/json; charset=utf-8"), json,data.toString()));
+//        Request request = builder.build();
+        RequestBody body  = RequestBody.create(json,data.toString());
+        Request request = new Request.Builder().url(url).delete(body).build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                String mMessage = e.getMessage();
+                Log.i("okhttp", mMessage);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                String mMessage = Objects.requireNonNull(response.body()).string();
+                String responseCode = null;
+                String responseCode2 =null;
+                try {
+                    JSONObject object = new JSONObject(mMessage);
+                    responseCode = object.getString("status");
+                    responseCode2 = object.getString("description");
+                    if(responseCode.equals("SUCCESS")) {
+                        Log.i("okhttp",mMessage);
+                        startActivity(new Intent(getContext(), ConfigureAccountActivity.class));
+                        FonnlinkService.getCore().clearProxyConfig();
+                        SharedPreferences sharedpreferences = getContext().getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                        editor.putBoolean(finishotp, false);
+                        editor.apply();
+                        SharedPreferences sharedpref = getContext().getSharedPreferences(Mypref, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor ceditor = sharedpref.edit();
+                        ceditor.putString(callcpuntpref, "0");
+                        ceditor.apply();
+                        countDownTimer.cancel();
+
+
+                        //  Toast.makeText(getContext(), ""+responseCode2, Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        FonnlinkService.getInstance().startActivity(getContext(), Dashboard.class);
+                        // Toast.makeText(getContext(), ""+responseCode2, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Log.i("okhttp",  mMessage);
+            }
+        });
+    }
 
 
 }

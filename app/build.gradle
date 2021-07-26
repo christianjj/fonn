@@ -13,18 +13,27 @@ android {
         applicationId "com.fonn.link"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 1
-        versionName "0.4.0"
+        versionCode 5
+        versionName "0.4.3"
         archivesBaseName = "Fonn_v" + versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -39,29 +48,32 @@ android {
 }
 
 dependencies {
-    //implementation platform('com.google.firebase:firebase-bom:28.1.0')
-
-    // Declare the dependencies for the Crashlytics and Analytics libraries
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    //implementation 'com.google.firebase:firebase-crashlytics'
-    //implementation 'com.google.firebase:firebase-analytics'
+//    implementation platform('com.google.firebase:firebase-bom:28.2.0')
+//
+//    // Declare the dependencies for the Crashlytics and Analytics libraries
+//    // When using the BoM, you don't specify versions in Firebase library dependencies
+//    implementation 'com.google.firebase:firebase-crashlytics'
+//    implementation 'com.google.firebase:firebase-analytics'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'androidx.core:core:1.5.0'
+
     implementation 'org.mockito:mockito-core:1.9.5:javadoc'
     implementation project(path: ':linphone-sdk-android-4.4.2')
 //    implementation 'com.google.firebase:firebase-messaging:21.1.0'
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.2'
     implementation 'com.onesignal:OneSignal:4.3.0'
     implementation 'com.karumi:dexter:6.0.2'
+    implementation 'com.android.volley:volley:1.2.0'
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.google.android.play:core:1.10.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
     implementation "com.github.bumptech.glide:okhttp3-integration:4.11.0"
     implementation 'androidx.navigation:navigation-fragment:2.3.5'
     implementation 'androidx.navigation:navigation-ui:2.3.5'
-    implementation 'com.speedchecker:android-sdk:4.2.105-3-demo'
+//    implementation 'com.speedchecker:android-sdk:4.2.105-3-demo'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
     implementation 'com.ebanx:swipe-button:0.8.3'
